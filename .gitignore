@@ -1,0 +1,20 @@
+# Godot-specific ignores
+.godot/
+*.translation
+*.pot
+*.mo
+
+# Generated import files
+*.import
+
+# Exported builds
+/export/
+/dist/
+
+# User-specific settings
+.vscode/
+.idea/
+
+# OS-specific
+.DS_Store
+Thumbs.db

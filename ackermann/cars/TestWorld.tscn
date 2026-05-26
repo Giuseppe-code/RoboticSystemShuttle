@@ -26,7 +26,10 @@ points = PackedVector3Array(-25.1366, 0.136612, -25.1366, -25.1366, 0.136612, 25
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_5qabv"]
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_uwhkb"]
+
 [sub_resource type="PlaneMesh" id="PlaneMesh_5qabv"]
+material = SubResource("StandardMaterial3D_uwhkb")
 size = Vector2(6, 50)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_51iks"]

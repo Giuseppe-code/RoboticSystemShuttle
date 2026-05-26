@@ -109,24 +109,24 @@ func _process(delta: float) -> void:
 		udp_peers.append(peer)
 		
 	for peer in udp_peers:
-		if peer.get_available_packet_count() <= 0:
-			continue
-		var var_collection : SubscribedVarCollection
-		if subscribers.get(peer) == null:
-			var_collection = SubscribedVarCollection.new()
-			subscribers[peer] = var_collection
-		else:
-			var_collection = subscribers[peer]
-		var packet = peer.get_packet()
-		var command = packet.decode_u8(0)
-		#print(packet)
-		match command:
-			COMMAND_KEEP_ALIVE:
-				var_collection.keep_alive()
-			COMMAND_SUBSCRIBE:
-				subscribe_from_remote(peer, packet)
-			COMMAND_PUBLISH:
-				publish_from_remote(peer, packet)
+		while peer.get_available_packet_count() > 0:
+			var var_collection : SubscribedVarCollection
+			if subscribers.get(peer) == null:
+				var_collection = SubscribedVarCollection.new()
+				var_collection.init(peer)
+				subscribers[peer] = var_collection
+			else:
+				var_collection = subscribers[peer]
+			var packet = peer.get_packet()
+			var command = packet.decode_u8(0)
+			#print(packet)
+			match command:
+				COMMAND_KEEP_ALIVE:
+					var_collection.keep_alive()
+				COMMAND_SUBSCRIBE:
+					subscribe_from_remote(peer, packet)
+				COMMAND_PUBLISH:
+					publish_from_remote(peer, packet)
 
 
 func subscribe_from_remote(peer : PacketPeerUDP, packet : PackedByteArray):
@@ -172,23 +172,6 @@ func publish_from_remote(peer : PacketPeerUDP, packet : PackedByteArray):
 		DDS_TYPE_FLOAT:
 			value = packet.decode_float(len + 3)
 	subscribed_vars[name] = value
-
-	var number_of_vars = packet.decode_u8(1)
-	var index = 2
-	var peer_var = {}
-	for i in range(number_of_vars):
-		var variable
-		if variables.get(name) == null:
-			variable = DDSVariable.new()
-			variable.init(name)
-			variables[name] = variable
-		else:
-			variable = variables[name]
-		variable.add_peer(peer)
-		peer_var[name] = variable
-		index += (len + 1)
-	subscribers[peer].set_var_list(peer_var)
-	#print(variables)
 
 
 func publish(name : String, type : int, value):

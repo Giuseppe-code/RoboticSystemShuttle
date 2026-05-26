@@ -3,7 +3,6 @@
 #
 import math
 
-from lib.system.basic import *
 from lib.utils.geometry import *
 
 class Cart:
@@ -270,6 +269,202 @@ class AckermannSteering:
         return self.v, self.w
 
 
+# --------------------------------------------------------------------------
+
+class TerrainProfile:
+    """Piecewise-constant road inclination profile along travelled distance."""
+
+    def __init__(self, segments):
+        if not segments:
+            raise ValueError("Terrain profile needs at least one segment")
+
+        self.segments = segments
+
+    def slope_at(self, distance: float) -> float:
+        if distance < self.segments[0][0]:
+            return 0.0
+
+        for start, end, slope_deg in self.segments:
+            if start <= distance < end:
+                return math.radians(slope_deg)
+
+        return math.radians(self.segments[-1][2])
+
+    def height_at(self, distance: float) -> float:
+        if distance <= self.segments[0][0]:
+            return 0.0
+
+        height = 0.0
+        for start, end, slope_deg in self.segments:
+            travelled = max(0.0, min(distance, end) - start)
+            height += travelled * math.sin(math.radians(slope_deg))
+        return height
+
+
+class MeasuredTerrainProfile:
+    """Terrain estimate updated from elevation and grade samples measured by Godot."""
+
+    def __init__(self, initial_height: float = 0.0, initial_slope: float = 0.0):
+        self.sample_distance = 0.0
+        self.sample_height = initial_height
+        self.sample_slope = initial_slope
+
+    def update(self, distance: float, height: float, slope: float) -> None:
+        self.sample_distance = distance
+        self.sample_height = height
+        self.sample_slope = slope
+
+    def slope_at(self, _distance: float) -> float:
+        return self.sample_slope
+
+    def height_at(self, distance: float) -> float:
+        delta_distance = distance - self.sample_distance
+        return self.sample_height + delta_distance * math.sin(self.sample_slope)
+
+
+class AckermannSlopeLoad:
+    """Ackermann vehicle with package load and gravity along a road profile."""
+
+    def __init__(self, cart_mass: float, friction: float, wheel_radius: float,
+                 wheelbase: float, terrain, package_masses=None):
+        self.cart_mass = cart_mass
+        self.package_masses = list(package_masses or [])
+        self.b = friction
+        self.r_wheels = wheel_radius
+        self.l_wb = wheelbase
+        self.terrain = terrain
+        self.g = 9.81
+
+        self.s = 0.0
+        self.x = 0.0
+        self.y = 0.0
+        self.z = 0.0
+        self.theta = 0.0
+        self.v = 0.0
+        self.w = 0.0
+        self.acceleration = 0.0
+        self.alpha = self.terrain.slope_at(self.s)
+        self.drive_force = 0.0
+        self.slope_force = 0.0
+
+    def set_pose(self, x: float, y: float, theta: float = 0.0) -> None:
+        self.x = x
+        self.y = y
+        self.theta = theta
+
+    def get_payload_mass(self) -> float:
+        return sum(self.package_masses)
+
+    def get_total_mass(self) -> float:
+        return self.cart_mass + self.get_payload_mass()
+
+    def load_packages(self, package_masses) -> None:
+        self.package_masses.extend(package_masses)
+
+    def unload_packages(self):
+        unloaded = self.package_masses
+        self.package_masses = []
+        return unloaded
+
+    def evaluate(self, delta_t: float, torque: float,
+                 steering_angle: float) -> None:
+        total_mass = self.get_total_mass()
+        self.alpha = self.terrain.slope_at(self.s)
+
+        self.drive_force = torque / self.r_wheels
+        self.slope_force = total_mass * self.g * math.sin(self.alpha)
+        friction_force = self.b * self.v
+        self.acceleration = (
+            self.drive_force - friction_force - self.slope_force
+        ) / total_mass
+
+        next_v = self.v + self.acceleration * delta_t
+        mean_v = 0.5 * (self.v + next_v)
+        next_s = self.s + mean_v * delta_t
+        mid_s = 0.5 * (self.s + next_s)
+        motion_alpha = self.terrain.slope_at(mid_s)
+        horizontal_step = (next_s - self.s) * math.cos(motion_alpha)
+
+        if steering_angle == 0:
+            next_w = 0.0
+        else:
+            curvature_radius = self.l_wb / math.tan(steering_angle)
+            next_w = mean_v / curvature_radius
+
+        self.x += horizontal_step * math.cos(self.theta)
+        self.y += horizontal_step * math.sin(self.theta)
+        self.theta += next_w * delta_t
+        self.s = next_s
+        self.z = self.terrain.height_at(self.s)
+        self.alpha = self.terrain.slope_at(self.s)
+        self.v = next_v
+        self.w = next_w
+
+    def get_pose(self) -> (float, float, float):
+        return self.x, self.y, self.theta
+
+    def get_pose_3d(self) -> (float, float, float, float, float):
+        return self.x, self.y, self.z, self.theta, self.alpha
+
+    def get_speed(self) -> (float, float):
+        return self.v, self.w
+
+
+class PackageTransferZone:
+    """Circular, one-shot loading or unloading area in map coordinates."""
+
+    LOAD = "load"
+    UNLOAD = "unload"
+
+    def __init__(self, name: str, center, radius: float, action: str,
+                 package_masses=None):
+        if radius <= 0:
+            raise ValueError("Zone radius must be greater than zero")
+        if action not in (self.LOAD, self.UNLOAD):
+            raise ValueError("Zone action must be 'load' or 'unload'")
+
+        self.name = name
+        self.center = center
+        self.radius = radius
+        self.action = action
+        self.package_masses = list(package_masses or [])
+        self.triggered = False
+
+    def contains(self, x: float, y: float) -> bool:
+        return math.hypot(x - self.center[0], y - self.center[1]) <= self.radius
+
+    def process(self, cart: AckermannSlopeLoad):
+        if self.triggered or not self.contains(cart.x, cart.y):
+            return None
+
+        payload_before = cart.get_payload_mass()
+        if self.action == self.LOAD:
+            cart.load_packages(self.package_masses)
+        else:
+            cart.unload_packages()
+        self.triggered = True
+
+        return {
+            "zone": self.name,
+            "action": self.action,
+            "payload_before_kg": payload_before,
+            "payload_after_kg": cart.get_payload_mass(),
+            "total_mass_kg": cart.get_total_mass(),
+        }
+
+
+def package_is_stable(cart: AckermannSlopeLoad, package_mass: float,
+                      mu_static: float) -> bool:
+    """Return false when static friction cannot hold a package on the cart."""
+    required_friction = package_mass * (
+        cart.acceleration + cart.g * math.sin(cart.alpha)
+    )
+    max_friction = (
+        mu_static * package_mass * cart.g * math.cos(cart.alpha)
+    )
+    return abs(required_friction) <= max_friction
+
+
 if __name__ == "__main__":
     c = Cart(1.0, 0.9)
     f = 1000
@@ -278,4 +473,3 @@ if __name__ == "__main__":
         (p, v) = c.evaluate(delta_t, f)
         f = 0
         print(v)
-

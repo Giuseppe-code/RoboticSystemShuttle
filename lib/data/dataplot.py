@@ -42,7 +42,9 @@ class DataPlotter:
 
         i = 0
         for varname in self.y_label:
-            pylab.plot(self.x_data, self.y_data[varname], self.__options[i], label=self.y_label[varname])
+            pylab.plot(self.x_data, self.y_data[varname],
+                       self.__options[i % len(self.__options)],
+                       label=self.y_label[varname])
             i += 1
         pylab.xlabel(self.x_label)
         pylab.legend()
@@ -98,4 +100,3 @@ if __name__ == "__main__":
         t += 0.01
 
     plot_multiple([d1, d2], figsize=(10, 8))
-

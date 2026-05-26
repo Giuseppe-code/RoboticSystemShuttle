@@ -44,7 +44,6 @@ environment = SubResource("Environment_uwhkb")
 [node name="Ground" type="StaticBody3D" parent="." unique_id=506926078]
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Ground" unique_id=108174235]
-transform = Transform3D(0.99998754, -0.004991621, 0, 0.004991621, 0.99998754, 0, 0, 0, 1, 0, 0.010808706, 0)
 mesh = SubResource("2")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Ground" unique_id=1581362793]

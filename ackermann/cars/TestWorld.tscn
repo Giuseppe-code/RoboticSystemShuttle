@@ -62,8 +62,8 @@ shadow_enabled = true
 transform = Transform3D(1.1924881e-08, 0, -1, 0, 1, 0, 1, 0, 1.1924881e-08, 0, 0, -0.629192)
 
 [node name="Pose" type="Label" parent="." unique_id=178613827]
-offset_right = 252.0
-offset_bottom = 68.0
+offset_right = 650.0
+offset_bottom = 125.0
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 36
 text = "test"

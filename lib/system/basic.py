@@ -2,8 +2,6 @@
 # basic.py
 #
 
-import numpy as np
-
 class Proportional:
 
     def __init__(self, _kp):
@@ -38,6 +36,9 @@ class Integrator:
 class LinearDynamicSystem:
     
     def __init__(self, A, B, C):
+        import numpy as np
+
+        self.np = np
         self.A = np.array(A)
         self.B = np.array(B)
         self.C = np.array(C)
@@ -45,14 +46,14 @@ class LinearDynamicSystem:
         self.x = np.array( [0] *  self.order)
     
     def evaluate(self, delta_t, _input):
-        self.x = (self.A * delta_t + np.eye(self.order)) @ self.x + self.B * delta_t * _input
+        self.x = (self.A * delta_t + self.np.eye(self.order)) @ self.x + self.B * delta_t * _input
         output = self.C @ self.x
         return output.flatten().tolist()
 
     def eig(self):
-        return np.linalg.eig(self.A)
+        return self.np.linalg.eig(self.A)
 
-        
+
         
         
         

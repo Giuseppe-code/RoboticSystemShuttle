@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://did66sy0183fg"]
 
 [ext_resource type="PackedScene" uid="uid://ux7g776v3tqy" path="res://cars/DemoCar.tscn" id="1"]
+[ext_resource type="Script" uid="uid://dbvgj8ha4yw" path="res://cars/mesh_instance_3d.gd" id="2_5qabv"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_s5t8w"]
 
@@ -23,6 +24,18 @@ size = Vector2(50, 50)
 [sub_resource type="ConvexPolygonShape3D" id="3"]
 points = PackedVector3Array(-25.1366, 0.136612, -25.1366, -25.1366, 0.136612, 25.1366, 25.1366, 0.136612, -25.1366, 25.1366, 0.136612, 25.1366)
 
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_5qabv"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_5qabv"]
+size = Vector2(6, 50)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_51iks"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_uwhkb"]
+size = Vector3(6, 0.1, 50)
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_51iks"]
+
 [node name="TestWorld" type="Node3D" unique_id=239139324]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1838348623]
@@ -31,13 +44,14 @@ environment = SubResource("Environment_uwhkb")
 [node name="Ground" type="StaticBody3D" parent="." unique_id=506926078]
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Ground" unique_id=108174235]
+transform = Transform3D(0.99998754, -0.004991621, 0, 0.004991621, 0.99998754, 0, 0, 0, 1, 0, 0.010808706, 0)
 mesh = SubResource("2")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Ground" unique_id=1581362793]
 shape = SubResource("3")
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=521090752]
-transform = Transform3D(0.007295381, -0.50516176, 0.8629939, 0, 0.86301684, 0.5051752, -0.9999734, -0.0036854453, 0.0062960363, 10.044479, 10.2141, 0.09843445)
+transform = Transform3D(-0.06150145, 0.50421894, -0.8613832, 0.0063757715, 0.86319774, 0.50482595, 0.9980868, 0.025555544, -0.0563027, -12.381751, 13.668604, -4.03244)
 current = true
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=2000399111]
@@ -45,6 +59,7 @@ transform = Transform3D(1, 0, 0, 0, 0.46823817, 0.8836023, 0, -0.8836023, 0.4682
 shadow_enabled = true
 
 [node name="DemoCar" parent="." unique_id=1011192078 instance=ExtResource("1")]
+transform = Transform3D(1.1924881e-08, 0, -1, 0, 1, 0, 1, 0, 1.1924881e-08, 0, 0, -0.629192)
 
 [node name="Pose" type="Label" parent="." unique_id=178613827]
 offset_right = 252.0
@@ -52,3 +67,26 @@ offset_bottom = 68.0
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 36
 text = "test"
+
+[node name="Ramp" type="StaticBody3D" parent="." unique_id=2035222282]
+transform = Transform3D(0.9890158, -0.14780939, 0, 0.14780939, 0.9890158, 0, 0, 0, 1, 10, 0.5, 0)
+physics_material_override = SubResource("PhysicsMaterial_5qabv")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Ramp" unique_id=741122659]
+mesh = SubResource("PlaneMesh_5qabv")
+surface_material_override/0 = SubResource("StandardMaterial3D_51iks")
+script = ExtResource("2_5qabv")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ramp" unique_id=914977835]
+shape = SubResource("BoxShape3D_uwhkb")
+
+[node name="SecondPlan" type="StaticBody3D" parent="." unique_id=1415419407]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 38.3, 1, 0)
+physics_material_override = SubResource("PhysicsMaterial_51iks")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="SecondPlan" unique_id=1264357327]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.3296051, -0.03171277, -0.16152859)
+mesh = SubResource("2")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="SecondPlan" unique_id=1051694174]
+shape = SubResource("3")

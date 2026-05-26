@@ -8,6 +8,8 @@ Questo progetto genera una mappa 3D dell'area attorno al **Parco Gandhi di Catan
 
 - `outputs/parco_gandhi_catania.blend`: scena sorgente Blender.
 - `outputs/parco_gandhi_catania.glb`: export glTF/GLB per motori 3D.
+- `outputs/parco_gandhi_catania_preview.png`: anteprima prospettica della scena.
+- `outputs/parco_gandhi_catania_top.png`: controllo planimetrico zenitale.
 - `godot/main.tscn`: scena Godot che istanzia la mappa.
 - `godot/data/parco_gandhi_catania_road_network.json`: rete stradale per la logica del bus.
 - `data/parco_gandhi_catania/osm_overpass_raw.json`: estrazione OSM originale conservata.
@@ -36,6 +38,12 @@ Il file `road_network.json` espone per ciascun tratto:
 - ampiezza usata per la mesh e relativa provenienza (`width_source`);
 - pendenza stimata di ogni segmento;
 - raggio e angolo delle curve ricavati dalla polilinea OSM.
+
+La geometria visuale drappeggia strade, parcheggi e parco sul terreno DEM. Le
+carreggiate sono infittite ogni `5 m` e gli estremi OSM condivisi ricevono un
+raccordo, evitando punte o tratti che scompaiono dentro un versante inclinato.
+Le strade che terminano esattamente sul bordo esterno della scena sono tagliate
+dal perimetro di esportazione configurato, non dalla rete OSM.
 
 ## Rigenerazione
 

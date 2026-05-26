@@ -9,7 +9,7 @@ python3 tools/fetch_osm_data.py \
   --config config/parco_gandhi_catania.json \
   --output-dir data/parco_gandhi_catania
 
-"$BLENDER_BIN" --background --python tools/build_blender_scene.py -- \
+"$BLENDER_BIN" --background --python-exit-code 1 --python tools/build_blender_scene.py -- \
   --input data/parco_gandhi_catania/scene_data.json \
   --blend outputs/parco_gandhi_catania.blend \
   --glb outputs/parco_gandhi_catania.glb

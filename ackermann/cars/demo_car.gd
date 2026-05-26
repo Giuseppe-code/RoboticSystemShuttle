@@ -2,11 +2,15 @@ extends Node3D
 @onready var pose: Label = $"../Pose"
 
 @export var terrain_probe_distance := 2.0
-@export var terrain_probe_height := 50.0
-@export var terrain_probe_depth := 100.0
+@export var terrain_probe_height := 5000.0
+@export var terrain_probe_depth := 10000.0
+@export_flags_3d_physics var terrain_collision_mask := 1
+@export var vehicle_surface_offset := 0.0
 
 var heading := 0.0
 var terrain_reference_height = null
+var measured_surface_height = null
+var pose_received := false
 
 func _ready() -> void:
 	DDS.subscribe("X")
@@ -18,6 +22,9 @@ func _ready() -> void:
 	DDS.subscribe("CargoPhase")
 
 func _physics_process(_delta: float) -> void:
+	if not pose_received:
+		return
+
 	var probe_position := Vector3(global_position.x, 0.0, global_position.z)
 	var forward := Vector3(-sin(heading), 0.0, -cos(heading))
 	var terrain_height = _surface_height(probe_position)
@@ -29,6 +36,7 @@ func _physics_process(_delta: float) -> void:
 	if terrain_reference_height == null:
 		terrain_reference_height = terrain_height
 
+	measured_surface_height = terrain_height
 	var relative_height: float = terrain_height - terrain_reference_height
 	var terrain_slope := 0.0
 	if ahead_height != null:
@@ -36,6 +44,7 @@ func _physics_process(_delta: float) -> void:
 
 	DDS.publish("TerrainHeight", DDS.DDS_TYPE_FLOAT, relative_height)
 	DDS.publish("TerrainSlope", DDS.DDS_TYPE_FLOAT, terrain_slope)
+	DDS.publish("TerrainSurfaceY", DDS.DDS_TYPE_FLOAT, terrain_height)
 
 func _process(delta: float) -> void:
 	#print(theRobot.global_position.x, " ", -theRobot.global_position.z, " ", theRobot.global_rotation.y)
@@ -53,8 +62,9 @@ func _process(delta: float) -> void:
 		heading = theta
 		self.global_position.x = -y
 		self.global_position.z = -x
-		if z != null:
-			self.global_position.y = z
+		pose_received = true
+		if measured_surface_height != null:
+			self.global_position.y = measured_surface_height + vehicle_surface_offset
 		if slope != null:
 			self.global_rotation = Vector3(slope, theta, 0.0)
 		else:
@@ -62,20 +72,23 @@ func _process(delta: float) -> void:
 
 		var height = z if z != null else 0.0
 		var incline = slope if slope != null else 0.0
+		var surface_y = measured_surface_height if measured_surface_height != null else global_position.y
 		var payload = payload_mass if payload_mass != null else 0.0
 		var cargo_label := "verso A"
 		if cargo_phase != null and cargo_phase >= 1.5:
 			cargo_label = "scaricato in B"
 		elif cargo_phase != null and cargo_phase >= 0.5:
 			cargo_label = "in trasporto"
-		pose.text = "X: %.3f, Y: %.3f, Z: %.3f\nTheta: %.0f, Slope: %.1f, Payload: %.1f kg\nCargo: %s" % \
-			[x, y, height, rad_to_deg(theta), rad_to_deg(incline), payload, cargo_label]
+		pose.text = "X: %.3f, Y: %.3f, Z rel: %.3f, Surface Y: %.3f\nTheta: %.0f, Slope: %.1f, Payload: %.1f kg\nCargo: %s" % \
+			[x, y, height, surface_y, rad_to_deg(theta), rad_to_deg(incline), payload, cargo_label]
+		DDS.publish("VehicleY", DDS.DDS_TYPE_FLOAT, global_position.y)
 
 func _surface_height(horizontal_position: Vector3):
 	var query := PhysicsRayQueryParameters3D.create(
 		horizontal_position + Vector3.UP * terrain_probe_height,
 		horizontal_position - Vector3.UP * terrain_probe_depth
 	)
+	query.collision_mask = terrain_collision_mask
 	var collision := get_world_3d().direct_space_state.intersect_ray(query)
 	if collision.is_empty():
 		return null

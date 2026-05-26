@@ -8,9 +8,10 @@ size = Vector3(50, 0.2, 50)
 [sub_resource type="BoxShape3D" id="RampShape"]
 size = Vector3(50, 0.2, 50)
 
-[node name="SlopeTestWorld" type="Node3D"]
+[node name="ElevatedSlopeTestWorld" type="Node3D"]
 
 [node name="Ground" type="StaticBody3D" parent="."]
+position = Vector3(0, 120, 0)
 rotation_degrees = Vector3(10, 0, 0)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Ground"]
@@ -24,4 +25,4 @@ shape = SubResource("RampShape")
 [node name="Pose" type="Label" parent="."]
 offset_right = 820.0
 offset_bottom = 125.0
-text = "Slope probe test"
+text = "Elevated slope probe test"

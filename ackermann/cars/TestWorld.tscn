@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://did66sy0183fg"]
 
 [ext_resource type="PackedScene" uid="uid://ux7g776v3tqy" path="res://cars/DemoCar.tscn" id="1"]
-[ext_resource type="Script" uid="uid://dbvgj8ha4yw" path="res://cars/mesh_instance_3d.gd" id="2_5qabv"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_s5t8w"]
 
@@ -19,7 +18,7 @@ albedo_color = Color(0.301961, 0.298039, 0.298039, 1)
 
 [sub_resource type="PlaneMesh" id="2"]
 material = SubResource("1")
-size = Vector2(50, 50)
+size = Vector2(51, 50)
 
 [sub_resource type="ConvexPolygonShape3D" id="3"]
 points = PackedVector3Array(-25.1366, 0.136612, -25.1366, -25.1366, 0.136612, 25.1366, 25.1366, 0.136612, -25.1366, 25.1366, 0.136612, 25.1366)
@@ -35,7 +34,7 @@ size = Vector2(6, 50)
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_51iks"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_uwhkb"]
-size = Vector3(6, 0.1, 50)
+size = Vector3(6, 0.1, 6.2)
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_51iks"]
 
@@ -71,13 +70,12 @@ theme_override_font_sizes/font_size = 36
 text = "test"
 
 [node name="Ramp" type="StaticBody3D" parent="." unique_id=2035222282]
-transform = Transform3D(0.9890158, -0.14780939, 0, 0.14780939, 0.9890158, 0, 0, 0, 1, 10, 0.5, 0)
+transform = Transform3D(0.9890159, -0.1478094, 0, 0.1478094, 0.9890159, 0, 0, 0, 1, 10, 0.5, 0)
 physics_material_override = SubResource("PhysicsMaterial_5qabv")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Ramp" unique_id=741122659]
 mesh = SubResource("PlaneMesh_5qabv")
 surface_material_override/0 = SubResource("StandardMaterial3D_51iks")
-script = ExtResource("2_5qabv")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Ramp" unique_id=914977835]
 shape = SubResource("BoxShape3D_uwhkb")
@@ -87,7 +85,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 38.3, 1, 0)
 physics_material_override = SubResource("PhysicsMaterial_51iks")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="SecondPlan" unique_id=1264357327]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.3296051, -0.03171277, -0.16152859)
 mesh = SubResource("2")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="SecondPlan" unique_id=1051694174]

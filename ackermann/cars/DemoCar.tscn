@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3 uid="uid://ux7g776v3tqy"]
 
-[ext_resource type="PackedScene" uid="uid://p70b7hbgia7k" path="res://assets/cars/sedanSports.glb" id="1"]
+[ext_resource type="PackedScene" path="res://assets/cars/sedanSports.glb" id="1"]
 [ext_resource type="Script" uid="uid://cw6qintmrc3jh" path="res://cars/demo_car.gd" id="2_j2411"]
 
 [sub_resource type="BoxShape3D" id="1"]

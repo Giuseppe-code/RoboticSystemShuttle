@@ -22,22 +22,26 @@ func _ready() -> void:
 	DDS.subscribe("CargoPhase")
 
 func _physics_process(_delta: float) -> void:
+	
 	if not pose_received:
 		return
 
 	var probe_position := Vector3(global_position.x, 0.0, global_position.z)
-	var forward := Vector3(-sin(heading), 0.0, -cos(heading))
+	var forward := Vector3(-sin(heading), 0.0, -cos(heading)) #direction XZ
 	var terrain_height = _surface_height(probe_position)
+	
 	var ahead_height = _surface_height(probe_position + forward * terrain_probe_distance)
 
 	if terrain_height == null:
 		return
 
+	#with the mesh terrain_height start at 1.27, we use terrain_reference_height for eliminate the offset
 	if terrain_reference_height == null:
 		terrain_reference_height = terrain_height
 
 	measured_surface_height = terrain_height
 	var relative_height: float = terrain_height - terrain_reference_height
+	print("relative_height: ", relative_height)
 	var terrain_slope := 0.0
 	if ahead_height != null:
 		terrain_slope = atan2(ahead_height - terrain_height, terrain_probe_distance)
@@ -47,7 +51,7 @@ func _physics_process(_delta: float) -> void:
 	DDS.publish("TerrainSurfaceY", DDS.DDS_TYPE_FLOAT, terrain_height)
 
 func _process(delta: float) -> void:
-	#print(theRobot.global_position.x, " ", -theRobot.global_position.z, " ", theRobot.global_rotation.y)
+	#print(self.global_position.x, " ", self.global_position.z, " ", self.global_rotation.y)
 	DDS.publish("tick", DDS.DDS_TYPE_FLOAT, delta)
 
 	var x = DDS.read("X")
@@ -83,6 +87,7 @@ func _process(delta: float) -> void:
 			[x, y, height, surface_y, rad_to_deg(theta), rad_to_deg(incline), payload, cargo_label]
 		DDS.publish("VehicleY", DDS.DDS_TYPE_FLOAT, global_position.y)
 
+#raycast
 func _surface_height(horizontal_position: Vector3):
 	var query := PhysicsRayQueryParameters3D.create(
 		horizontal_position + Vector3.UP * terrain_probe_height,

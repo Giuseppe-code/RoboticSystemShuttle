@@ -46,6 +46,7 @@ environment = SubResource("Environment_uwhkb")
 [node name="Ground" type="StaticBody3D" parent="." unique_id=506926078]
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Ground" unique_id=108174235]
+rotation_order = 3
 mesh = SubResource("2")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Ground" unique_id=1581362793]
@@ -60,7 +61,6 @@ transform = Transform3D(1, 0, 0, 0, 0.46823817, 0.8836023, 0, -0.8836023, 0.4682
 shadow_enabled = true
 
 [node name="DemoCar" parent="." unique_id=1011192078 instance=ExtResource("1")]
-transform = Transform3D(1.1924881e-08, 0, -1, 0, 1, 0, 1, 0, 1.1924881e-08, 0, 0, -0.629192)
 
 [node name="Pose" type="Label" parent="." unique_id=178613827]
 offset_right = 820.0

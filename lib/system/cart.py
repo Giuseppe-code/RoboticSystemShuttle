@@ -326,7 +326,7 @@ class AckermannSlopeLoad:
     """Ackermann vehicle with package load and gravity along a road profile."""
 
     def __init__(self, cart_mass: float, friction: float, wheel_radius: float,
-                 wheelbase: float, terrain, package_masses=None):
+                 wheelbase: float, terrain: MeasuredTerrainProfile, package_masses=None):
         self.cart_mass = cart_mass
         self.package_masses = list(package_masses or [])
         self.b = friction

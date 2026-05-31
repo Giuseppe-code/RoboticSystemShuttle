@@ -18,7 +18,7 @@ albedo_color = Color(0.301961, 0.298039, 0.298039, 1)
 
 [sub_resource type="PlaneMesh" id="2"]
 material = SubResource("1")
-size = Vector2(51, 50)
+size = Vector2(50, 50)
 
 [sub_resource type="ConvexPolygonShape3D" id="3"]
 points = PackedVector3Array(-25.1366, 0.136612, -25.1366, -25.1366, 0.136612, 25.1366, 25.1366, 0.136612, -25.1366, 25.1366, 0.136612, 25.1366)
@@ -38,6 +38,9 @@ size = Vector3(6, 0.1, 50)
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_51iks"]
 
+[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_s5t8w"]
+points = PackedVector3Array(-25.1366, 0.136612, -25.1366, -25.1366, 0.136612, 25.1366, 25.1366, 0.136612, -25.1366, 25.1366, 0.136612, 25.1366)
+
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_s5t8w"]
 albedo_color = Color(1, 0, 0, 1)
 
@@ -52,8 +55,8 @@ albedo_color = Color(0, 1, 0, 1)
 material = SubResource("StandardMaterial3D_5qabv")
 size = Vector2(5, 5)
 
-[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_s5t8w"]
-points = PackedVector3Array(-25.1366, 0.136612, -25.1366, -25.1366, 0.136612, 25.1366, 25.1366, 0.136612, -25.1366, 25.1366, 0.136612, 25.1366)
+[sub_resource type="BoxShape3D" id="BoxShape3D_s5t8w"]
+size = Vector3(5, 0, 5)
 
 [node name="TestWorld" type="Node3D" unique_id=239139324]
 
@@ -87,7 +90,7 @@ theme_override_font_sizes/font_size = 36
 text = "test"
 
 [node name="Ramp" type="StaticBody3D" parent="." unique_id=2035222282]
-transform = Transform3D(0.9890159, -0.1478094, 0, 0.1478094, 0.9890159, 0, 0, 0, 1, 10, 0.5, 0)
+transform = Transform3D(0.98640925, -0.16430736, 0, 0.16430736, 0.98640925, 0, 0, 0, 1, 10, 0.5, 0)
 physics_material_override = SubResource("PhysicsMaterial_5qabv")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Ramp" unique_id=741122659]
@@ -98,14 +101,14 @@ surface_material_override/0 = SubResource("StandardMaterial3D_51iks")
 shape = SubResource("BoxShape3D_uwhkb")
 
 [node name="SecondPlan" type="StaticBody3D" parent="." unique_id=1415419407]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 38.5, 1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 37.95, 1, 0)
 physics_material_override = SubResource("PhysicsMaterial_51iks")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="SecondPlan" unique_id=1264357327]
 mesh = SubResource("2")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="SecondPlan" unique_id=1051694174]
-shape = SubResource("3")
+shape = SubResource("ConvexPolygonShape3D_s5t8w")
 
 [node name="zoneA" type="StaticBody3D" parent="." unique_id=1924978701]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 0.001, 0)
@@ -120,7 +123,6 @@ shape = SubResource("3")
 
 [node name="zoneB" type="StaticBody3D" parent="." unique_id=110125135]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.5, 1.002, 0)
-collision_layer = 2
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="zoneB" unique_id=1994756578]
 rotation_order = 3
@@ -128,4 +130,4 @@ layers = 4
 mesh = SubResource("PlaneMesh_51iks")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="zoneB" unique_id=1865178086]
-shape = SubResource("ConvexPolygonShape3D_s5t8w")
+shape = SubResource("BoxShape3D_s5t8w")

@@ -9,7 +9,13 @@ import math
 from lib.system.cart import PackageTransferZone
 from lib.system.controllers import PID_Controller
 from lib.system.polar import Polar2DController
-from lib.system.trajectory import StraightLine2DMotion
+
+try:
+    from .nf1 import NF1Planner
+    from .world import World
+except ImportError:
+    from nf1 import NF1Planner
+    from world import World
 
 
 class MissionStateId(Enum):
@@ -40,6 +46,7 @@ class AckermannMissionConfig:
     zone_radius: float = 0.35
     packages_to_load: list = field(default_factory=lambda: [5.0, 5.0, 5.0])
     arrival_threshold: float | None = None
+    arrival_speed_threshold: float = 0.12
     arm_pos_tolerance: float = 0.04
     arm_angle_tolerance: float = math.radians(7)
     max_target_speed_rate: float = 1.0
@@ -57,6 +64,69 @@ class MissionCommand:
     torque: float = 0.0
     steering_angle: float = 0.0
     target_speed: float = 0.0
+
+
+class NF1Path2DMotion:
+    """Waypoint generator backed by the NF1 grid planner."""
+
+    def __init__(self, scale=1.0, margin=5.0, waypoint_threshold=1.0, lookahead_steps=3):
+        self.scale = scale
+        self.margin = margin
+        self.waypoint_threshold = waypoint_threshold
+        self.lookahead_steps = lookahead_steps
+        self.path = []
+        self.current_index = 0
+        self.offset = (0.0, 0.0)
+
+    def start_motion(self, start, end):
+        min_x = min(start[0], end[0])
+        max_x = max(start[0], end[0])
+        min_y = min(start[1], end[1])
+        max_y = max(start[1], end[1])
+
+        self.offset = (self.margin - min_x, self.margin - min_y)
+        width = (max_x - min_x) + 2 * self.margin + self.scale
+        height = (max_y - min_y) + 2 * self.margin + self.scale
+        world = World(width, height, self.scale)
+
+        planner = NF1Planner(world)
+        plan_start = self._to_planner_point(start)
+        plan_end = self._to_planner_point(end)
+        grid_path = planner.plan(plan_start, plan_end)
+        self.path = [self._to_mission_point(world.to_world(*p)) for p in grid_path]
+        if self.path:
+            self.path[0] = start
+            self.path[-1] = end
+        self.current_index = 1 if len(self.path) > 1 else 0
+
+    def evaluate(self, _delta_t, current_pose=None):
+        if not self.path:
+            return (0.0, 0.0)
+
+        if current_pose is not None:
+            closest_index = min(
+                range(self.current_index, len(self.path)),
+                key=lambda i: math.hypot(
+                    current_pose[0] - self.path[i][0],
+                    current_pose[1] - self.path[i][1],
+                ),
+            )
+            self.current_index = max(self.current_index, closest_index)
+            while self.current_index < len(self.path) - 1:
+                target = self.path[self.current_index]
+                distance = math.hypot(current_pose[0] - target[0], current_pose[1] - target[1])
+                if distance > self.waypoint_threshold:
+                    break
+                self.current_index += 1
+
+        target_index = min(self.current_index + self.lookahead_steps, len(self.path) - 1)
+        return self.path[target_index]
+
+    def _to_planner_point(self, point):
+        return point[0] + self.offset[0], point[1] + self.offset[1]
+
+    def _to_mission_point(self, point):
+        return point[0] - self.offset[0], point[1] - self.offset[1]
 
 
 class CommandSmoother:
@@ -160,7 +230,7 @@ class DriveToPointState(MissionState):
     def update(self, mission, delta_t):
         pose = mission.cart.get_pose()
         current_speed, _ = mission.cart.get_speed()
-        target_x, target_y = mission.trajectory.evaluate(delta_t)
+        target_x, target_y = mission.trajectory.evaluate(delta_t, pose)
         target_speed, steering_angle = mission.position_controller.evaluate(
             delta_t, target_x, target_y, pose
         )
@@ -174,6 +244,8 @@ class DriveToPointState(MissionState):
             pose[1] - self.target_point[1],
         )
         if distance <= mission.config.arrival_threshold:
+            if abs(current_speed) > mission.config.arrival_speed_threshold:
+                return self.state_id, mission.hold_cart_command(delta_t)
             mission.log_arrival(self.target_point)
             return self.next_state, MissionCommand()
 
@@ -281,7 +353,7 @@ class AckermannMissionController:
             1.0, 3.0,
             5.0, math.radians(40),
         )
-        self.trajectory = trajectory or StraightLine2DMotion(1.0, 1.5, 1.5)
+        self.trajectory = trajectory or NF1Path2DMotion()
         self.command_smoother = CommandSmoother(
             self.config.max_target_speed_rate,
             self.config.max_torque_rate,

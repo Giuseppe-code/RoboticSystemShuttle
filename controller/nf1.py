@@ -2,9 +2,16 @@
 # nf1.py
 #
 
-from world import *
+try:
+    from .world import *
+except ImportError:
+    from world import *
 import numpy as np
-import cv2
+
+try:
+    import cv2
+except ImportError:
+    cv2 = None
 
 class NF1Planner:
 
@@ -20,6 +27,8 @@ class NF1Planner:
         self.path = []
 
     def world_to_image(self):
+        if cv2 is None:
+            raise RuntimeError("OpenCV is required only to render the NF1 debug image")
         font = cv2.FONT_HERSHEY_SIMPLEX
         image = np.zeros((self.world.x_size, self.world.y_size,3), dtype = np.uint8)
         for k in self.mark_map:
@@ -125,4 +134,3 @@ if __name__ == "__main__":
     img = nf1.world_to_image()
     cv2.imshow("world", img)
     cv2.waitKey(0)
-

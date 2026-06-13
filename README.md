@@ -14,3 +14,9 @@ Zones are color-coded: Zone A = Blue, Zone C = Red. Zone B contains an elevated 
 Objects have variable weight and fixed size. At the start of the simulation, packages are generated within predefined weight ranges.
 
 > **Current scope:** one loading zone and one unloading zone are implemented.
+
+
+# features to be implemented
+1. complete arm logic combined with the cart.
+2. shelf creation, pick up area within the shelf, generating objects inside the pick up area on top of the shelf.
+3. code refactoring

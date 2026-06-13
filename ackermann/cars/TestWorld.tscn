@@ -26,6 +26,7 @@ points = PackedVector3Array(-25.1366, 0.136612, -25.1366, -25.1366, 0.136612, 25
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_5qabv"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_uwhkb"]
+albedo_color = Color(0.33782083, 0.30502242, 0.3487608, 1)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_5qabv"]
 material = SubResource("StandardMaterial3D_uwhkb")
@@ -47,6 +48,9 @@ albedo_color = Color(1, 0, 0, 1)
 [sub_resource type="PlaneMesh" id="PlaneMesh_uwhkb"]
 material = SubResource("StandardMaterial3D_s5t8w")
 size = Vector2(5, 5)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_5qabv"]
+size = Vector3(5, 0, 5)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5qabv"]
 albedo_color = Color(0, 1, 0, 1)
@@ -73,7 +77,7 @@ mesh = SubResource("2")
 shape = SubResource("3")
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=521090752]
-transform = Transform3D(-0.06150145, 0.50421894, -0.8613832, 0.0063757715, 0.86319774, 0.50482595, 0.9980868, 0.025555544, -0.0563027, -12.381751, 13.668604, -4.03244)
+transform = Transform3D(-0.77897274, 0.32083872, -0.5387616, 0.0063757645, 0.86319774, 0.5048258, 0.6270254, 0.38981044, -0.6744531, 2.0872087, 10.715887, -18.364792)
 current = true
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=2000399111]
@@ -119,10 +123,11 @@ layers = 4
 mesh = SubResource("PlaneMesh_uwhkb")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="zoneA" unique_id=828818676]
-shape = SubResource("3")
+shape = SubResource("BoxShape3D_5qabv")
 
 [node name="zoneB" type="StaticBody3D" parent="." unique_id=110125135]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.5, 1.002, 0)
+collision_layer = 4
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="zoneB" unique_id=1994756578]
 rotation_order = 3

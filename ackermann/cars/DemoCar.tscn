@@ -14,8 +14,11 @@ radius = 0.29888
 collision_layer = 2
 script = ExtResource("2_j2411")
 
+[node name="body" parent="tmpParent/sedanSports2" parent_id_path=PackedInt32Array(151640860) index="0" unique_id=562127380]
+transform = Transform3D(1, 0, 0, 0, -0.0033306153, 0, 0, 0, 0.890576, 0.0024710596, 0.62162054, 0.01691848)
+
 [node name="CollisionBody" type="CollisionShape3D" parent="." index="1" unique_id=796845825]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.66268, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.43969387, 0.029217094)
 shape = SubResource("1")
 
 [node name="CollisionWheelsFront" type="CollisionShape3D" parent="." index="2" unique_id=600204390]

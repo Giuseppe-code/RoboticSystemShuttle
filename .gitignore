@@ -14,6 +14,7 @@
 # User-specific settings
 .vscode/
 .idea/
+.venv/
 
 # OS-specific
 .DS_Store

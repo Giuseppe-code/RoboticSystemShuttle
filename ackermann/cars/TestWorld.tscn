@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://did66sy0183fg"]
 
 [ext_resource type="PackedScene" uid="uid://ux7g776v3tqy" path="res://cars/DemoCar.tscn" id="1"]
+[ext_resource type="Script" path="res://cars/package_spawner.gd" id="2"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_s5t8w"]
 
@@ -136,3 +137,6 @@ mesh = SubResource("PlaneMesh_51iks")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="zoneB" unique_id=1865178086]
 shape = SubResource("BoxShape3D_s5t8w")
+
+[node name="PackageSpawner" type="Node3D" parent="zoneB"]
+script = ExtResource("2")

@@ -1,9 +1,9 @@
 [gd_scene format=3 uid="uid://did66sy0183fg"]
 
 [ext_resource type="PackedScene" uid="uid://ux7g776v3tqy" path="res://cars/DemoCar.tscn" id="1"]
+[ext_resource type="Script" uid="uid://dfrvyj5f1rqrf" path="res://cars/package_spawner.gd" id="2"]
 [ext_resource type="PackedScene" uid="uid://c3eubmtclpiug" path="res://arm4/RobotArm.tscn" id="2_uwhkb"]
 [ext_resource type="Script" uid="uid://baejrr2jvtxqw" path="res://cars/arm_preview_camera.gd" id="3_5qabv"]
-[ext_resource type="Script" path="res://cars/package_spawner.gd" id="2"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_s5t8w"]
 
@@ -46,7 +46,7 @@ size = Vector3(6, 0.1, 50)
 points = PackedVector3Array(-25.1366, 0.136612, -25.1366, -25.1366, 0.136612, 25.1366, 25.1366, 0.136612, -25.1366, 25.1366, 0.136612, 25.1366)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_s5t8w"]
-albedo_color = Color(1, 0, 0, 1)
+albedo_color = Color(0, 0.65882355, 0.52156866, 1)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_uwhkb"]
 material = SubResource("StandardMaterial3D_s5t8w")
@@ -96,6 +96,9 @@ shadow_enabled = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, -0.2)
 
 [node name="RobotArm" parent="DemoCar/ArmMount" unique_id=893962122 instance=ExtResource("2_uwhkb")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0)
+current_pose_path = NodePath(".")
+camera_view_path = NodePath("../../../ArmCameraView")
 
 [node name="Pose" type="Label" parent="." unique_id=178613827]
 offset_right = 820.0
@@ -129,12 +132,16 @@ shape = SubResource("ConvexPolygonShape3D_s5t8w")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 0.001, 0)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="zoneA" unique_id=396758511]
+transform = Transform3D(1, 0, 0, 0, 1.0034729, 0, 0, 0, 1, 0, 0, 0)
 rotation_order = 3
 layers = 4
 mesh = SubResource("PlaneMesh_uwhkb")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="zoneA" unique_id=828818676]
 shape = SubResource("BoxShape3D_5qabv")
+
+[node name="PackageSpawner" type="Node3D" parent="zoneA" unique_id=397665337]
+script = ExtResource("2")
 
 [node name="zoneB" type="StaticBody3D" parent="." unique_id=110125135]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.5, 1.002, 0)
@@ -148,6 +155,9 @@ mesh = SubResource("PlaneMesh_51iks")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="zoneB" unique_id=1865178086]
 shape = SubResource("BoxShape3D_s5t8w")
 
+[node name="PackageSpawner" type="Node3D" parent="zoneB" unique_id=1732758653]
+script = ExtResource("2")
+
 [node name="ArmCameraViewport" type="SubViewport" parent="." unique_id=760377737]
 
 [node name="ArmPreviewCamera" type="Camera3D" parent="ArmCameraViewport" unique_id=365728655]
@@ -156,14 +166,16 @@ script = ExtResource("3_5qabv")
 source_camera_path = NodePath("../../DemoCar/ArmMount/RobotArm/Joint_base/Joint_1/arm_1/Joint_2/joint_3/arm_2/joint_4/joint_5/Camera3D")
 
 [node name="ArmCameraView" type="TextureRect" parent="." unique_id=317320100]
+light_mask = 1023
+visibility_layer = 1023
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -512.0
+offset_left = -527.6829
 offset_bottom = 512.0
 grow_horizontal = 0
 texture = SubResource("ViewportTexture_5qabv")
+expand_mode = 2
+stretch_mode = 5
 
 [editable path="DemoCar/ArmMount/RobotArm"]
-[node name="PackageSpawner" type="Node3D" parent="zoneB"]
-script = ExtResource("2")

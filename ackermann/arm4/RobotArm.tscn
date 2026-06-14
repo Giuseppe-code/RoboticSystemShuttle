@@ -11,6 +11,7 @@
 [ext_resource type="PackedScene" uid="uid://3jn2byplg8gq" path="res://assets/arm4/joint_5.glb" id="9_joint_5"]
 
 [node name="RobotArm" type="Node3D" unique_id=893962122]
+transform = Transform3D(1.9535384, 0, 0, 0, 2.3267303, 0, 0, 0, 1.1913105, 0, 0, 0)
 script = ExtResource("1_robot_arm")
 
 [node name="Joint_base" parent="." unique_id=1559928450 instance=ExtResource("2_joint_base")]

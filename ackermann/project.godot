@@ -23,6 +23,7 @@ config/icon="res://icon.png"
 
 DebugOverlay="*res://debug/DebugOverlay.tscn"
 DDS="*res://Components/DDS/dds.gd"
+CameraSender="*uid://cv4n7dgy21gxb"
 
 [input]
 

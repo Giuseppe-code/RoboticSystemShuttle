@@ -45,7 +45,6 @@ class ArmElement:
 
 
 # --------------------------------------------------------------------------------
-
 class ThreeJointsPlanarArm:
 
     def __init__(self, _L1, _L2, _L3, _M2, _M3, _Mend, _b):

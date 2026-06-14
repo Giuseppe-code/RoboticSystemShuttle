@@ -89,7 +89,7 @@ class AckermannMissionControllerTest(unittest.TestCase):
 
         mission.update(0.1)
         self.assertEqual(mission.state_id, MissionStateId.PICK_LIFT_SAFE)
-        self.assertEqual(cart.get_payload_mass(), 15.0)
+        self.assertEqual(cart.get_payload_mass(), 5.0)
 
         mission.update(0.1)
         self.assertEqual(mission.state_id, MissionStateId.DRIVE_TO_A)

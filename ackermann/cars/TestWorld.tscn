@@ -3,6 +3,7 @@
 [ext_resource type="PackedScene" uid="uid://ux7g776v3tqy" path="res://cars/DemoCar.tscn" id="1"]
 [ext_resource type="PackedScene" uid="uid://c3eubmtclpiug" path="res://arm4/RobotArm.tscn" id="2_uwhkb"]
 [ext_resource type="Script" uid="uid://baejrr2jvtxqw" path="res://cars/arm_preview_camera.gd" id="3_5qabv"]
+[ext_resource type="Script" path="res://cars/package_spawner.gd" id="2"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_s5t8w"]
 
@@ -164,3 +165,5 @@ grow_horizontal = 0
 texture = SubResource("ViewportTexture_5qabv")
 
 [editable path="DemoCar/ArmMount/RobotArm"]
+[node name="PackageSpawner" type="Node3D" parent="zoneB"]
+script = ExtResource("2")

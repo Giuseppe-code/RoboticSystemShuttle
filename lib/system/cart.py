@@ -439,7 +439,9 @@ class PackageTransferZone:
 
         payload_before = cart.get_payload_mass()
         if self.action == self.LOAD:
-            cart.load_packages(self.package_masses)
+            if not self.package_masses:
+                return None
+            cart.load_packages([self.package_masses.pop(0)])
         else:
             cart.unload_packages()
         self.triggered = True

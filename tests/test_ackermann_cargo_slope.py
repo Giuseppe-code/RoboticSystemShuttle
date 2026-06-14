@@ -48,8 +48,8 @@ class PackageTransferZoneTest(unittest.TestCase):
         unload_zone = PackageTransferZone("B", (5.0, 5.0), 0.25, "unload")
 
         load_event = load_zone.process(cart)
-        self.assertEqual(load_event["payload_after_kg"], 15.0)
-        self.assertEqual(cart.get_total_mass(), 25.0)
+        self.assertEqual(load_event["payload_after_kg"], 5.0)
+        self.assertEqual(cart.get_total_mass(), 15.0)
         self.assertIsNone(load_zone.process(cart))
         self.assertIsNone(unload_zone.process(cart))
 

@@ -15,7 +15,19 @@ collision_layer = 2
 script = ExtResource("2_j2411")
 
 [node name="body" parent="tmpParent/sedanSports2" parent_id_path=PackedInt32Array(151640860) index="0" unique_id=562127380]
-transform = Transform3D(1, 0, 0, 0, -0.0033306153, 0, 0, 0, 0.890576, 0.0024710596, 0.62162054, 0.01691848)
+transform = Transform3D(1.2555403, 0, 0, 0, -0.003294066, 0, 0, 0, 0.93422276, 0.0024710596, 0.62162054, 0.01691848)
+
+[node name="wheel_backLeft" parent="tmpParent/sedanSports2" parent_id_path=PackedInt32Array(151640860) index="1" unique_id=299643888]
+transform = Transform3D(-1.2237854, 0, 0, 0, 1.0153759, 0, 0, 0, 1.0000002, -0.42832488, 0.3, 0.6599998)
+
+[node name="wheel_backRight" parent="tmpParent/sedanSports2" parent_id_path=PackedInt32Array(151640860) index="2" unique_id=1125032800]
+transform = Transform3D(1.2237854, 0, 0, 0, 0.9846242, 0, 0, 0, 0.9999997, 0.42832488, 0.3, 0.6599998)
+
+[node name="wheel_frontLeft" parent="tmpParent/sedanSports2" parent_id_path=PackedInt32Array(151640860) index="3" unique_id=1250802438]
+transform = Transform3D(-1.2237854, 0, 0, 0, 1.0153759, 0, 0, 0, 1.0000002, -0.42832488, 0.3, -0.6599998)
+
+[node name="wheel_frontRight" parent="tmpParent/sedanSports2" parent_id_path=PackedInt32Array(151640860) index="4" unique_id=1771854177]
+transform = Transform3D(1.2237854, 0, 0, 0, 0.9846242, 0, 0, 0, 0.9999997, 0.42832488, 0.3, -0.6599998)
 
 [node name="CollisionBody" type="CollisionShape3D" parent="." index="1" unique_id=796845825]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.43969387, 0.029217094)

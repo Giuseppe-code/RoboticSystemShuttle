@@ -1,6 +1,6 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene format=3 uid="uid://cjctxbqgdglpd"]
 
-[ext_resource type="PackedScene" path="res://cars/DemoCar.tscn" id="1_car"]
+[ext_resource type="PackedScene" uid="uid://ux7g776v3tqy" path="res://cars/DemoCar.tscn" id="1_car"]
 
 [sub_resource type="BoxMesh" id="RampMesh"]
 size = Vector3(50, 0.2, 50)
@@ -8,21 +8,20 @@ size = Vector3(50, 0.2, 50)
 [sub_resource type="BoxShape3D" id="RampShape"]
 size = Vector3(50, 0.2, 50)
 
-[node name="ElevatedSlopeTestWorld" type="Node3D"]
+[node name="ElevatedSlopeTestWorld" type="Node3D" unique_id=855275680]
 
-[node name="Ground" type="StaticBody3D" parent="."]
-position = Vector3(0, 120, 0)
-rotation_degrees = Vector3(10, 0, 0)
+[node name="Ground" type="StaticBody3D" parent="." unique_id=43538818]
+transform = Transform3D(1, 0, 0, 0, 0.9848077, -0.17364818, 0, 0.17364818, 0.9848077, 0, 120, 0)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Ground"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Ground" unique_id=1820793143]
 mesh = SubResource("RampMesh")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground" unique_id=208670214]
 shape = SubResource("RampShape")
 
-[node name="DemoCar" parent="." instance=ExtResource("1_car")]
+[node name="DemoCar" parent="." unique_id=693798367 instance=ExtResource("1_car")]
 
-[node name="Pose" type="Label" parent="."]
+[node name="Pose" type="Label" parent="." unique_id=1116340955]
 offset_right = 820.0
 offset_bottom = 125.0
 text = "Elevated slope probe test"

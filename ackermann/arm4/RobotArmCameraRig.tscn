@@ -1,0 +1,28 @@
+[gd_scene format=3 uid="uid://cp3kx0qisfnp6"]
+
+[ext_resource type="PackedScene" uid="uid://c3eubmtclpiug" path="res://arm4/RobotArm.tscn" id="1_robot_arm"]
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_robot_arm"]
+viewport_path = NodePath("SubViewport")
+
+[node name="RobotArmCameraRig" type="Node3D" unique_id=13675969]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
+
+[node name="SubViewport" type="SubViewport" parent="." unique_id=1479960009]
+
+[node name="RobotArm" parent="SubViewport" unique_id=1517980398 instance=ExtResource("1_robot_arm")]
+camera_view_path = NodePath("../../CameraView")
+
+[node name="CameraView" type="TextureRect" parent="." unique_id=503851374]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -276.0
+offset_top = 9.0
+offset_right = -8.0
+offset_bottom = 261.0
+grow_horizontal = 0
+texture = SubResource("ViewportTexture_robot_arm")
+expand_mode = 2
+stretch_mode = 5
+metadata/_edit_use_anchors_ = true

@@ -1,6 +1,8 @@
 [gd_scene format=3 uid="uid://did66sy0183fg"]
 
 [ext_resource type="PackedScene" uid="uid://ux7g776v3tqy" path="res://cars/DemoCar.tscn" id="1"]
+[ext_resource type="PackedScene" uid="uid://c3eubmtclpiug" path="res://arm4/RobotArm.tscn" id="2_uwhkb"]
+[ext_resource type="Script" uid="uid://baejrr2jvtxqw" path="res://cars/arm_preview_camera.gd" id="3_5qabv"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_s5t8w"]
 
@@ -62,6 +64,9 @@ size = Vector2(5, 5)
 [sub_resource type="BoxShape3D" id="BoxShape3D_s5t8w"]
 size = Vector3(5, 0, 5)
 
+[sub_resource type="ViewportTexture" id="ViewportTexture_5qabv"]
+viewport_path = NodePath("ArmCameraViewport")
+
 [node name="TestWorld" type="Node3D" unique_id=239139324]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1838348623]
@@ -85,6 +90,11 @@ transform = Transform3D(1, 0, 0, 0, 0.46823817, 0.8836023, 0, -0.8836023, 0.4682
 shadow_enabled = true
 
 [node name="DemoCar" parent="." unique_id=1011192078 instance=ExtResource("1")]
+
+[node name="ArmMount" type="Node3D" parent="DemoCar" unique_id=1440943801]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, -0.2)
+
+[node name="RobotArm" parent="DemoCar/ArmMount" unique_id=893962122 instance=ExtResource("2_uwhkb")]
 
 [node name="Pose" type="Label" parent="." unique_id=178613827]
 offset_right = 820.0
@@ -136,3 +146,21 @@ mesh = SubResource("PlaneMesh_51iks")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="zoneB" unique_id=1865178086]
 shape = SubResource("BoxShape3D_s5t8w")
+
+[node name="ArmCameraViewport" type="SubViewport" parent="." unique_id=760377737]
+
+[node name="ArmPreviewCamera" type="Camera3D" parent="ArmCameraViewport" unique_id=365728655]
+current = true
+script = ExtResource("3_5qabv")
+source_camera_path = NodePath("../../DemoCar/ArmMount/RobotArm/Joint_base/Joint_1/arm_1/Joint_2/joint_3/arm_2/joint_4/joint_5/Camera3D")
+
+[node name="ArmCameraView" type="TextureRect" parent="." unique_id=317320100]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -512.0
+offset_bottom = 512.0
+grow_horizontal = 0
+texture = SubResource("ViewportTexture_5qabv")
+
+[editable path="DemoCar/ArmMount/RobotArm"]

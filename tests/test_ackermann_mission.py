@@ -26,6 +26,21 @@ class InstantArm:
 
 
 class AckermannMissionControllerTest(unittest.TestCase):
+    def test_default_vision_scan_covers_full_rotation(self):
+        config = AckermannMissionConfig(
+            vision_scan_radius=0.8,
+            vision_scan_heights=(0.35, 0.5),
+            vision_scan_steps=8,
+        )
+
+        self.assertEqual(len(config.vision_scan_poses), 16)
+        first_ring = config.vision_scan_poses[:8]
+        angles = [math.atan2(y, x) for x, y, _z, _a in first_ring]
+        self.assertAlmostEqual(angles[0], -math.pi)
+        self.assertAlmostEqual(angles[-1], math.radians(135))
+        for x, y, _z, _a in config.vision_scan_poses:
+            self.assertAlmostEqual(math.hypot(x, y), 0.8)
+
     def test_first_drive_command_is_smoothed(self):
         config = AckermannMissionConfig(
             point_a=(0.0, 0.0),
@@ -85,6 +100,9 @@ class AckermannMissionControllerTest(unittest.TestCase):
         self.assertEqual(mission.state_id, MissionStateId.PICK_APPROACH)
 
         mission.update(0.1)
+        self.assertEqual(mission.state_id, MissionStateId.VISION_PICK)
+
+        mission.update(0.1)
         self.assertEqual(mission.state_id, MissionStateId.PICK_DOWN)
 
         mission.update(0.1)
@@ -108,6 +126,78 @@ class AckermannMissionControllerTest(unittest.TestCase):
         mission.update(0.1)
         self.assertTrue(mission.is_done())
         self.assertEqual(len(mission.cargo_events), 2)
+
+    def test_vision_pick_creeps_forward_after_empty_scan(self):
+        config = AckermannMissionConfig(
+            point_a=(0.0, 0.0),
+            point_b=(0.0, -1.0),
+            zone_radius=0.25,
+            vision_scan_poses=((0.2, 0.0, 0.4, math.radians(-90)),),
+            vision_scan_dwell=0.01,
+            vision_sample_period=0.01,
+            vision_cart_approach_speed=0.2,
+        )
+        cart = AckermannSlopeLoad(
+            10.0,
+            0.8,
+            0.5,
+            2.0,
+            TerrainProfile([(0.0, 100.0, 0.0)]),
+        )
+        mission = AckermannMissionController(
+            cart,
+            InstantArm(),
+            config=config,
+            logger=None,
+            vision_callback=lambda: None,
+        )
+
+        cart.set_pose(*config.point_b)
+        mission.update(0.1)
+        mission.update(0.1)
+        self.assertEqual(mission.state_id, MissionStateId.VISION_PICK)
+
+        mission.update(0.1)
+        command = mission.update(0.1)
+        self.assertGreater(command.target_speed, 0.0)
+
+    def test_vision_pick_creeps_forward_when_target_is_on_image_edge(self):
+        config = AckermannMissionConfig(
+            point_a=(0.0, 0.0),
+            point_b=(0.0, -1.0),
+            zone_radius=0.25,
+            vision_scan_poses=((0.2, 0.0, 0.4, math.radians(-90)),),
+            vision_scan_dwell=0.01,
+            vision_sample_period=0.01,
+            vision_min_track_area=2500,
+            vision_track_margin_px=40,
+            vision_cart_approach_speed=0.2,
+        )
+        cart = AckermannSlopeLoad(
+            10.0,
+            0.8,
+            0.5,
+            2.0,
+            TerrainProfile([(0.0, 100.0, 0.0)]),
+        )
+        detection = {"color": "blue", "cx": 256, "cy": 12, "area": 7000}
+        mission = AckermannMissionController(
+            cart,
+            InstantArm(),
+            config=config,
+            logger=None,
+            vision_callback=lambda: detection,
+        )
+
+        cart.set_pose(*config.point_b)
+        mission.update(0.1)
+        mission.update(0.1)
+        self.assertEqual(mission.state_id, MissionStateId.VISION_PICK)
+
+        mission.update(0.1)
+        command = mission.update(0.1)
+        self.assertGreater(command.target_speed, 0.0)
+        self.assertIsNone(mission.vision_pick_down_pose)
 
     def test_full_mission_completes_with_real_arm_and_vehicle_dynamics(self):
         config = AckermannMissionConfig(

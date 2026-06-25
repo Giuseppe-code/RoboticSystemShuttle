@@ -1,14 +1,14 @@
 [gd_scene format=3 uid="uid://c3eubmtclpiug"]
 
 [ext_resource type="Script" uid="uid://bg7o4o6jyylu5" path="res://arm4/robot_arm.gd" id="1_robot_arm"]
-[ext_resource type="PackedScene" uid="uid://bivvrxxr1v41p" path="res://assets/arm4/Joint_base.glb" id="2_joint_base"]
-[ext_resource type="PackedScene" uid="uid://bc67fmutj0eai" path="res://assets/arm4/Joint_1.glb" id="3_joint_1"]
-[ext_resource type="PackedScene" uid="uid://c5sign18rb6rf" path="res://assets/arm4/arm_1.glb" id="4_arm_1"]
-[ext_resource type="PackedScene" uid="uid://purdpn0iah75" path="res://assets/arm4/Joint_2.glb" id="5_joint_2"]
-[ext_resource type="PackedScene" uid="uid://oh1oxa7f5mko" path="res://assets/arm4/joint_3.glb" id="6_joint_3"]
-[ext_resource type="PackedScene" uid="uid://cisya7gr07jet" path="res://assets/arm4/arm_2.glb" id="7_arm_2"]
-[ext_resource type="PackedScene" uid="uid://d1jys1crnmsiq" path="res://assets/arm4/joint_4.glb" id="8_joint_4"]
-[ext_resource type="PackedScene" uid="uid://3jn2byplg8gq" path="res://assets/arm4/joint_5.glb" id="9_joint_5"]
+[ext_resource type="PackedScene" uid="uid://enixdllvjhi" path="res://assets/arm4/Joint_base.glb" id="2_joint_base"]
+[ext_resource type="PackedScene" uid="uid://c1jh4qir6yln7" path="res://assets/arm4/Joint_1.glb" id="3_joint_1"]
+[ext_resource type="PackedScene" uid="uid://btgtd53m86s7t" path="res://assets/arm4/arm_1.glb" id="4_arm_1"]
+[ext_resource type="PackedScene" uid="uid://cmrqq2o5y574a" path="res://assets/arm4/Joint_2.glb" id="5_joint_2"]
+[ext_resource type="PackedScene" uid="uid://t2u5tfror2ls" path="res://assets/arm4/joint_3.glb" id="6_joint_3"]
+[ext_resource type="PackedScene" uid="uid://q6vo40dqmhia" path="res://assets/arm4/arm_2.glb" id="7_arm_2"]
+[ext_resource type="PackedScene" uid="uid://db4wmr565l62x" path="res://assets/arm4/joint_4.glb" id="8_joint_4"]
+[ext_resource type="PackedScene" uid="uid://df1fh8eyx8jwi" path="res://assets/arm4/joint_5.glb" id="9_joint_5"]
 
 [node name="RobotArm" type="Node3D" unique_id=893962122]
 transform = Transform3D(1.9535384, 0, 0, 0, 2.3267303, 0, 0, 0, 1.1913105, 0, 0, 0)

@@ -6,6 +6,7 @@
 
 # Generated import files
 *.import
+!ackermann/assets/arm4/*.glb.import
 
 # Exported builds
 /export/

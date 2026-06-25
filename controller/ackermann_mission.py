@@ -21,6 +21,7 @@ except ImportError:
 class MissionStateId(Enum):
     DRIVE_TO_B = "DRIVE_TO_B"
     PICK_APPROACH = "PICK_APPROACH"
+    VISION_PICK = "VISION_PICK"
     PICK_DOWN = "PICK_DOWN"
     PICK_LIFT_SAFE = "PICK_LIFT_SAFE"
     DRIVE_TO_A = "DRIVE_TO_A"
@@ -53,10 +54,46 @@ class AckermannMissionConfig:
     max_torque_rate: float = 100.0
     max_steering_rate: float = math.radians(60)
     arm_poses: ArmMissionPoses = field(default_factory=ArmMissionPoses)
+    vision_pick_enabled: bool = True
+    vision_center: tuple = (256, 256)
+    vision_pixel_tolerance: int = 8
+    vision_lock_frames: int = 4
+    vision_sample_period: float = 0.12
+    vision_pixel_to_arm_gain: float = 0.0005
+    vision_max_adjust_step: float = 0.04
+    vision_scan_dwell: float = 0.35
+    vision_scan_poses: tuple | None = None
+    vision_scan_radius: float = 0.80
+    vision_scan_heights: tuple = (0.35, 0.50, 0.65)
+    vision_scan_steps: int = 16
+    vision_scan_start_angle: float = math.radians(-180)
+    vision_min_track_area: int = 2500
+    vision_track_margin_px: int = 40
+    vision_cart_approach_enabled: bool = True
+    vision_cart_approach_speed: float = 0.22
+    vision_cart_approach_step: float = 0.35
+    vision_cart_max_approach: float = 2.0
+    vision_track_pose_timeout: float = 2.0
 
     def __post_init__(self):
         if self.arrival_threshold is None:
             self.arrival_threshold = self.zone_radius
+        if self.vision_scan_poses is None:
+            self.vision_scan_poses = self._build_vision_scan_poses()
+
+    def _build_vision_scan_poses(self):
+        poses = []
+        steps = max(1, self.vision_scan_steps)
+        for height in self.vision_scan_heights:
+            for index in range(steps):
+                angle = self.vision_scan_start_angle + (2.0 * math.pi * index / steps)
+                poses.append((
+                    self.vision_scan_radius * math.cos(angle),
+                    self.vision_scan_radius * math.sin(angle),
+                    height,
+                    math.radians(-90),
+                ))
+        return tuple(poses)
 
 
 @dataclass
@@ -265,15 +302,276 @@ class ArmMoveState(MissionState):
         self.next_state = next_state
         self.message = message
 
+    def target_for(self, mission):
+        return self.target_pose
+
     def enter(self, mission):
-        mission.set_arm_target_or_warn(self.target_pose, self.state_id.value)
+        mission.set_arm_target_or_warn(self.target_for(mission), self.state_id.value)
 
     def update(self, mission, _delta_t):
-        if mission.arm_is_near(self.target_pose):
+        target_pose = self.target_for(mission)
+        if mission.arm_is_near(target_pose):
             if self.message:
                 mission.log(self.message)
             return self.next_state, mission.hold_cart_command(_delta_t)
         return self.state_id, mission.hold_cart_command(_delta_t)
+
+
+class VisionPickState(MissionState):
+    cargo_phase = 1.0
+
+    def __init__(self, next_state):
+        self.state_id = MissionStateId.VISION_PICK
+        self.next_state = next_state
+        self.scan_index = 0
+        self.scan_timer = 0.0
+        self.sample_timer = 0.0
+        self.lock_count = 0
+        self.warned_missing_provider = False
+        self.mode = "scan"
+        self.best_detection = None
+        self.best_pose = None
+        self.entry_pose = None
+        self.approach_start_pose = None
+        self.track_pose_timer = 0.0
+
+    def enter(self, mission):
+        self.scan_index = 0
+        self.scan_timer = 0.0
+        self.sample_timer = 0.0
+        self.lock_count = 0
+        self.mode = "scan"
+        self.best_detection = None
+        self.best_pose = None
+        self.entry_pose = mission.cart.get_pose()
+        self.approach_start_pose = None
+        self.track_pose_timer = 0.0
+        mission.vision_pick_pose = None
+        mission.vision_pick_down_pose = None
+        self._set_scan_pose(mission)
+
+    def update(self, mission, delta_t):
+        command = mission.hold_cart_command(delta_t)
+        if not mission.config.vision_pick_enabled:
+            return self.next_state, command
+
+        if mission.vision_callback is None:
+            if not self.warned_missing_provider:
+                mission.log("Vision provider assente: procedo con pick nominale")
+                self.warned_missing_provider = True
+            return self.next_state, command
+
+        if self.mode == "approach":
+            return self.state_id, self._approach_cart(mission, delta_t)
+
+        self.scan_timer += delta_t
+        self.sample_timer += delta_t
+        if self.sample_timer < mission.config.vision_sample_period:
+            return self.state_id, command
+        self.sample_timer = 0.0
+
+        if (
+            self.mode == "track"
+            and self.best_pose is not None
+            and not mission.arm_is_near(self.best_pose)
+        ):
+            self.track_pose_timer += delta_t
+            if self.track_pose_timer < mission.config.vision_track_pose_timeout:
+                return self.state_id, command
+            mission.log("Vision best pose non raggiunta: continuo il tracking dalla posa corrente")
+        self.track_pose_timer = 0.0
+
+        detection = mission.read_vision_target()
+        if self.mode == "scan":
+            if detection is not None:
+                area = detection.get("area", 0)
+                best_area = 0
+                if self.best_detection is not None:
+                    best_area = self.best_detection.get("area", 0)
+                if area > best_area:
+                    self.best_detection = detection
+                    self.best_pose = mission.arm.get_pose()
+                    mission.last_vision_detection = detection
+            self._advance_scan_if_ready(mission)
+            return self.state_id, command
+
+        if detection is None:
+            self.lock_count = 0
+            self._restart_scan(mission)
+            return self.state_id, command
+        if not self._is_inside_track_window(mission, detection):
+            self.lock_count = 0
+            if self._can_approach_cart(mission):
+                self.mode = "approach"
+                self.approach_start_pose = mission.cart.get_pose()
+                mission.log("Vision target al bordo: avanzo lentamente verso lo scaffale")
+                return self.state_id, command
+            self._restart_scan(mission)
+            return self.state_id, command
+
+        cx = detection["cx"]
+        cy = detection["cy"]
+        center_x, center_y = mission.config.vision_center
+        err_x = center_x - cx
+        err_y = center_y - cy
+        mission.last_vision_detection = detection
+
+        if (
+            abs(err_x) <= mission.config.vision_pixel_tolerance
+            and abs(err_y) <= mission.config.vision_pixel_tolerance
+        ):
+            self.lock_count += 1
+            if self.lock_count >= mission.config.vision_lock_frames:
+                x, y, z, a = mission.arm.get_pose()
+                mission.vision_pick_pose = (x, y, z, a)
+                mission.vision_pick_down_pose = (
+                    x,
+                    y,
+                    mission.config.arm_poses.pick_down[2],
+                    a,
+                )
+                mission.selected_cargo_color = detection.get("color")
+                mission.log(
+                    "Vision target locked: "
+                    + str({
+                        "color": mission.selected_cargo_color,
+                        "cx": cx,
+                        "cy": cy,
+                        "area": detection.get("area"),
+                    })
+                )
+                return self.next_state, command
+            return self.state_id, command
+
+        self.lock_count = 0
+        x, y, z, a = mission.arm.get_pose()
+        gain = mission.config.vision_pixel_to_arm_gain
+        max_step = mission.config.vision_max_adjust_step
+        step_x = self._clamp(err_x * gain, -max_step, max_step)
+        step_y = self._clamp(err_y * gain, -max_step, max_step)
+        target = (x + step_x, y + step_y, z, a)
+        if not mission.set_arm_target_or_warn(target, "VISION_PICK_TRACK"):
+            self._advance_scan_if_ready(mission, force=True)
+        return self.state_id, command
+
+    def _set_scan_pose(self, mission):
+        poses = mission.config.vision_scan_poses
+        if not poses:
+            mission.set_arm_target_or_warn(
+                mission.config.arm_poses.pick_approach,
+                "VISION_PICK_SCAN",
+            )
+            return
+        pose = poses[self.scan_index % len(poses)]
+        mission.set_arm_target_or_warn(pose, "VISION_PICK_SCAN")
+
+    def _advance_scan_if_ready(self, mission, force=False):
+        if not force and self.scan_timer < mission.config.vision_scan_dwell:
+            return
+        self.scan_timer = 0.0
+        self.scan_index += 1
+        poses = mission.config.vision_scan_poses
+        if poses and self.scan_index >= len(poses):
+            if self.best_detection is not None and self.best_pose is not None:
+                mission.log(
+                    "Vision 360 scan best target: "
+                    + str({
+                        "color": self.best_detection.get("color"),
+                        "cx": self.best_detection.get("cx"),
+                        "cy": self.best_detection.get("cy"),
+                        "area": self.best_detection.get("area"),
+                    })
+                )
+                if self._is_trackable(mission, self.best_detection):
+                    self.mode = "track"
+                    self.lock_count = 0
+                    self.track_pose_timer = 0.0
+                    mission.set_arm_target_or_warn(self.best_pose, "VISION_PICK_BEST_POSE")
+                    return
+                if self._can_approach_cart(mission):
+                    self.mode = "approach"
+                    self.approach_start_pose = mission.cart.get_pose()
+                    mission.log("Vision target lontano o al bordo: avanzo lentamente verso lo scaffale")
+                    return
+            if self._can_approach_cart(mission):
+                self.mode = "approach"
+                self.approach_start_pose = mission.cart.get_pose()
+                mission.log("Vision scan senza target stabile: avanzo lentamente verso lo scaffale")
+                return
+            self.scan_index = 0
+        self._set_scan_pose(mission)
+
+    def _restart_scan(self, mission):
+        self.mode = "scan"
+        self.lock_count = 0
+        self.scan_index = 0
+        self.scan_timer = 0.0
+        self.track_pose_timer = 0.0
+        self.best_detection = None
+        self.best_pose = None
+        self._set_scan_pose(mission)
+
+    def _can_approach_cart(self, mission):
+        if not mission.config.vision_cart_approach_enabled:
+            return False
+        if self.entry_pose is None:
+            return False
+        current = mission.cart.get_pose()
+        approached = math.hypot(
+            current[0] - self.entry_pose[0],
+            current[1] - self.entry_pose[1],
+        )
+        return approached < mission.config.vision_cart_max_approach
+
+    def _is_trackable(self, mission, detection):
+        if detection is None:
+            return False
+        if detection.get("area", 0) < mission.config.vision_min_track_area:
+            return False
+        return self._is_inside_track_window(mission, detection)
+
+    def _is_inside_track_window(self, mission, detection):
+        cx = detection.get("cx", -1)
+        cy = detection.get("cy", -1)
+        margin = mission.config.vision_track_margin_px
+        max_x = mission.config.vision_center[0] * 2
+        max_y = mission.config.vision_center[1] * 2
+        return margin <= cx <= max_x - margin and margin <= cy <= max_y - margin
+
+    def _approach_cart(self, mission, delta_t):
+        current = mission.cart.get_pose()
+        current_speed, _ = mission.cart.get_speed()
+        if self.approach_start_pose is None:
+            self.approach_start_pose = current
+        step_distance = math.hypot(
+            current[0] - self.approach_start_pose[0],
+            current[1] - self.approach_start_pose[1],
+        )
+        total_distance = 0.0
+        if self.entry_pose is not None:
+            total_distance = math.hypot(
+                current[0] - self.entry_pose[0],
+                current[1] - self.entry_pose[1],
+            )
+        if (
+            step_distance >= mission.config.vision_cart_approach_step
+            or total_distance >= mission.config.vision_cart_max_approach
+        ):
+            self._restart_scan(mission)
+            return mission.hold_cart_command(delta_t)
+
+        target_speed = mission.config.vision_cart_approach_speed
+        torque = mission.speed_controller.evaluate(delta_t, target_speed - current_speed)
+        torque = mission.command_smoother.evaluate_torque(delta_t, torque)
+        return MissionCommand(
+            torque=torque,
+            steering_angle=0.0,
+            target_speed=target_speed,
+        )
+
+    @staticmethod
+    def _clamp(value, lower, upper):
+        return max(lower, min(upper, value))
 
 
 class CargoArmState(ArmMoveState):
@@ -289,6 +587,14 @@ class CargoArmState(ArmMoveState):
         super().__init__(state_id, target_pose, next_state, message)
         self.zone = zone
         self.empty_message = empty_message
+
+    def target_for(self, mission):
+        if (
+            self.state_id == MissionStateId.PICK_DOWN
+            and mission.vision_pick_down_pose is not None
+        ):
+            return mission.vision_pick_down_pose
+        return self.target_pose
 
     def update(self, mission, delta_t):
         next_state, command = super().update(mission, delta_t)
@@ -324,13 +630,14 @@ class AckermannMissionController:
     STATE_CODES = {
         MissionStateId.DRIVE_TO_B: 0,
         MissionStateId.PICK_APPROACH: 1,
-        MissionStateId.PICK_DOWN: 2,
-        MissionStateId.PICK_LIFT_SAFE: 3,
-        MissionStateId.DRIVE_TO_A: 4,
-        MissionStateId.DROP_APPROACH: 5,
-        MissionStateId.DROP_DOWN: 6,
-        MissionStateId.DROP_LIFT_SAFE: 7,
-        MissionStateId.DONE: 8,
+        MissionStateId.VISION_PICK: 2,
+        MissionStateId.PICK_DOWN: 3,
+        MissionStateId.PICK_LIFT_SAFE: 4,
+        MissionStateId.DRIVE_TO_A: 5,
+        MissionStateId.DROP_APPROACH: 6,
+        MissionStateId.DROP_DOWN: 7,
+        MissionStateId.DROP_LIFT_SAFE: 8,
+        MissionStateId.DONE: 9,
     }
 
     def __init__(
@@ -342,6 +649,7 @@ class AckermannMissionController:
         position_controller=None,
         trajectory=None,
         logger=print,
+        vision_callback=None,
     ):
         self.cart = cart
         self.arm = arm
@@ -360,6 +668,11 @@ class AckermannMissionController:
             self.config.max_steering_rate,
         )
         self.logger = logger
+        self.vision_callback = vision_callback
+        self.vision_pick_pose = None
+        self.vision_pick_down_pose = None
+        self.last_vision_detection = None
+        self.selected_cargo_color = None
 
         self.load_zone = PackageTransferZone(
             "B_shelf_load",
@@ -387,8 +700,11 @@ class AckermannMissionController:
             MissionStateId.PICK_APPROACH: ArmMoveState(
                 MissionStateId.PICK_APPROACH,
                 poses.pick_approach,
+                MissionStateId.VISION_PICK,
+                "Braccio in posa di pre-scan: cerco il pacco con la camera",
+            ),
+            MissionStateId.VISION_PICK: VisionPickState(
                 MissionStateId.PICK_DOWN,
-                "Braccio sopra il pacco: scendo per prendere",
             ),
             MissionStateId.PICK_DOWN: CargoArmState(
                 MissionStateId.PICK_DOWN,
@@ -454,6 +770,11 @@ class AckermannMissionController:
         if not ok:
             self.log("WARNING: target braccio non raggiungibile: " + str((label, target_pose)))
         return ok
+
+    def read_vision_target(self):
+        if self.vision_callback is None:
+            return None
+        return self.vision_callback()
 
     def hold_cart_command(self, delta_t):
         self.command_smoother.reset_drive_target()

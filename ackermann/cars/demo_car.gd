@@ -78,11 +78,15 @@ func _process(delta: float) -> void:
 		var incline = slope if slope != null else 0.0
 		var surface_y = measured_surface_height if measured_surface_height != null else global_position.y
 		var payload = payload_mass if payload_mass != null else 0.0
-		var cargo_label := "verso A"
-		if cargo_phase != null and cargo_phase >= 1.5:
-			cargo_label = "scaricato in B"
+		var cargo_label := "verso B"
+		if cargo_phase != null and cargo_phase >= 3.5:
+			cargo_label = "scaricato in A"
+		elif cargo_phase != null and cargo_phase >= 2.5:
+			cargo_label = "rilascio in A"
+		elif cargo_phase != null and cargo_phase >= 1.5:
+			cargo_label = "in trasporto verso A"
 		elif cargo_phase != null and cargo_phase >= 0.5:
-			cargo_label = "in trasporto"
+			cargo_label = "presa in corso"
 		pose.text = "X: %.3f, Y: %.3f, Z rel: %.3f, Surface Y: %.3f\nTheta: %.0f, Slope: %.1f, Payload: %.1f kg\nCargo: %s" % \
 			[x, y, height, surface_y, rad_to_deg(theta), rad_to_deg(incline), payload, cargo_label]
 		DDS.publish("VehicleY", DDS.DDS_TYPE_FLOAT, global_position.y)

@@ -3,7 +3,8 @@
 #
 
 import sys
-sys.path.insert(0, "../..")
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import cv2
 import numpy as np
@@ -48,10 +49,8 @@ dds.subscribe(['tick'])
 imr = ImageReader('localhost', 4445)
 imr.connect()
 
-blue_cube = ( [200, 0, 0], [255, 30, 30] ) # BGR
-red_cube = ( [0, 0, 200], [30, 30, 255] ) # BGR
-
-obj_finder = ObjectFinder(blue_cube)
+target_color = sys.argv[1] if len(sys.argv) > 1 else "blue"
+obj_finder = ObjectFinder(target_color)
 
 x_tracker = PID_Controller(0.0001, 0.0, 0.0, 0.01)
 y_tracker = PID_Controller(0.0001, 0.0, 0.0, 0.01)
@@ -64,7 +63,6 @@ target_locked = False
 t = Time()
 t.start()
 while True:
-    dds.publish('read_image', 1, DDS.DDS_TYPE_INT)
     dds.wait('tick')
     delta_t = t.elapsed()
 
@@ -88,7 +86,7 @@ while True:
     plt.append_y("current", robot.arm.element_2.w)
 
     ## image processing
-    img = imr.read_image(512, 512)
+    img = imr.request_image(dds, 512, 512)
     cx, cy, binary_image = obj_finder.find(img)
 
     if (cx >= 0)and(cy >= 0):

@@ -1,6 +1,6 @@
 extends Node3D
 
-@export var package_count := 3
+@export var package_count := 1
 @export var package_size := Vector3(0.5, 0.5, 0.5)
 @export var shelf_size := Vector2(5.0, 5.0)
 @export var top_clearance := 0.005
@@ -62,9 +62,9 @@ func _random_package_position(
 	var min_distance: float = max(package_size.x, package_size.z) + package_spacing
 	for _attempt in range(50):
 		var candidate := Vector3(
-			rng.randf_range(-half_x, half_x),
+			rng.randf_range(-half_x * 0.25, half_x * 0.25),
 			center_y,
-			rng.randf_range(-half_z, half_z)
+			rng.randf_range(-half_z * 0.25, half_z * 0.25)
 		)
 		var overlaps := false
 		for placed in placed_positions:

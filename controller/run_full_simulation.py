@@ -20,12 +20,16 @@ from ackermann_mission import AckermannMissionConfig, AckermannMissionController
 
 
 class VisionProvider:
-    def __init__(self, dds, host="localhost", port=4445, output_dir=None):
+    def __init__(self, dds, mission_config, host="localhost", port=4445, output_dir=None):
         self.dds = dds
         self.reader = ImageReader(host, port)
         self.finders = {
-            "blue": ObjectFinder("blue", min_area=80, max_area=250000),
-            "red": ObjectFinder("red", min_area=80, max_area=250000),
+            color: ObjectFinder(
+                color,
+                min_area=mission_config.vision_targets.min_area,
+                max_area=mission_config.vision_targets.max_area,
+            )
+            for color in mission_config.vision_targets.colors
         }
         self.output_dir = output_dir
         self.sample_count = 0
@@ -102,8 +106,9 @@ def publish_state(dds, cart, arm, mission, command):
     dds.publish("Theta", pose_3d[3], DDS.DDS_TYPE_FLOAT)
     dds.publish("Slope", pose_3d[4], DDS.DDS_TYPE_FLOAT)
     dds.publish("PayloadMass", cart.get_payload_mass(), DDS.DDS_TYPE_FLOAT)
-    dds.publish("CargoPhase", mission.cargo_phase(), DDS.DDS_TYPE_FLOAT)
     dds.publish("MissionState", float(mission.state_code()), DDS.DDS_TYPE_FLOAT)
+    dds.publish("CargoColorCode", float(mission.selected_cargo_color_code()), DDS.DDS_TYPE_FLOAT)
+    dds.publish("UnloadZoneCode", float(mission.selected_unload_zone_code()), DDS.DDS_TYPE_FLOAT)
 
     dds.publish("theta0", theta0, DDS.DDS_TYPE_FLOAT)
     dds.publish("theta1", theta1, DDS.DDS_TYPE_FLOAT)
@@ -124,6 +129,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--duration", type=float, default=120.0)
     parser.add_argument("--point-b-y", type=float, default=-25.0)
+    parser.add_argument("--point-c-x", type=float, default=5.0)
+    parser.add_argument("--point-c-y", type=float, default=0.0)
     parser.add_argument("--zone-radius", type=float, default=0.35)
     parser.add_argument("--vision-tolerance", type=int, default=70)
     parser.add_argument("--vision-lock-frames", type=int, default=1)
@@ -138,8 +145,17 @@ def main():
 
     vision = None
     try:
+        mission_config = AckermannMissionConfig(
+            point_a=(0.0, 0.0),
+            point_b=(0.0, args.point_b_y),
+            point_c=(args.point_c_x, args.point_c_y),
+            zone_radius=args.zone_radius,
+            packages_to_load=[5.0, 5.0, 5.0],
+            vision_pixel_tolerance=args.vision_tolerance,
+            vision_lock_frames=args.vision_lock_frames,
+        )
         if not args.no_vision:
-            vision = VisionProvider(dds, output_dir=args.debug_dir)
+            vision = VisionProvider(dds, mission_config, output_dir=args.debug_dir)
             print("[startup] connecting camera stream on localhost:4445", flush=True)
             vision.connect()
             print("[startup] camera stream connected", flush=True)
@@ -152,14 +168,6 @@ def main():
             wheel_radius=0.5,
             wheelbase=2.0,
             terrain=terrain,
-        )
-        mission_config = AckermannMissionConfig(
-            point_a=(0.0, 0.0),
-            point_b=(0.0, args.point_b_y),
-            zone_radius=args.zone_radius,
-            packages_to_load=[5.0, 5.0, 5.0],
-            vision_pixel_tolerance=args.vision_tolerance,
-            vision_lock_frames=args.vision_lock_frames,
         )
         mission = AckermannMissionController(
             cart,

@@ -19,7 +19,8 @@ func _ready() -> void:
 	DDS.subscribe("Theta")
 	DDS.subscribe("Slope")
 	DDS.subscribe("PayloadMass")
-	DDS.subscribe("CargoPhase")
+	DDS.subscribe("MissionState")
+	DDS.subscribe("UnloadZoneCode")
 
 func _physics_process(_delta: float) -> void:
 	
@@ -60,7 +61,8 @@ func _process(delta: float) -> void:
 	var theta = DDS.read("Theta")
 	var slope = DDS.read("Slope")
 	var payload_mass = DDS.read("PayloadMass")
-	var cargo_phase = DDS.read("CargoPhase")
+	var mission_state = DDS.read("MissionState")
+	var unload_zone_code = DDS.read("UnloadZoneCode")
 
 	if (x != null)and(y != null)and(theta != null):
 		heading = theta
@@ -78,18 +80,35 @@ func _process(delta: float) -> void:
 		var incline = slope if slope != null else 0.0
 		var surface_y = measured_surface_height if measured_surface_height != null else global_position.y
 		var payload = payload_mass if payload_mass != null else 0.0
-		var cargo_label := "verso B"
-		if cargo_phase != null and cargo_phase >= 3.5:
-			cargo_label = "scaricato in A"
-		elif cargo_phase != null and cargo_phase >= 2.5:
-			cargo_label = "rilascio in A"
-		elif cargo_phase != null and cargo_phase >= 1.5:
-			cargo_label = "in trasporto verso A"
-		elif cargo_phase != null and cargo_phase >= 0.5:
-			cargo_label = "presa in corso"
+		var unload_label := _unload_label(unload_zone_code)
+		var cargo_label := _cargo_label(mission_state, unload_label)
 		pose.text = "X: %.3f, Y: %.3f, Z rel: %.3f, Surface Y: %.3f\nTheta: %.0f, Slope: %.1f, Payload: %.1f kg\nCargo: %s" % \
 			[x, y, height, surface_y, rad_to_deg(theta), rad_to_deg(incline), payload, cargo_label]
 		DDS.publish("VehicleY", DDS.DDS_TYPE_FLOAT, global_position.y)
+
+
+func _unload_label(unload_zone_code) -> String:
+	if unload_zone_code != null and int(float(unload_zone_code)) == 3:
+		return "C"
+	return "A"
+
+
+func _cargo_label(mission_state, unload_label: String) -> String:
+	if mission_state == null:
+		return "verso B"
+	match int(float(mission_state)):
+		0:
+			return "verso B"
+		1, 2, 3, 4:
+			return "presa in corso"
+		5:
+			return "in trasporto verso %s" % unload_label
+		6, 7, 8:
+			return "rilascio in %s" % unload_label
+		9:
+			return "missione completata"
+		_:
+			return "stato missione sconosciuto"
 
 #raycast
 func _surface_height(horizontal_position: Vector3):

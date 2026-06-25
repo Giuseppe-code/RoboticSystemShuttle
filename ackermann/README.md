@@ -42,7 +42,9 @@ Python pubblica verso Godot:
 | `Theta` | Orientamento sul piano |
 | `Slope` | Inclinazione del cart |
 | `PayloadMass` | Massa dei pacchi a bordo |
-| `CargoPhase` | `0` prima del carico, `1` in trasporto, `2` consegnato |
+| `MissionState` | Codice dello stato missione corrente |
+| `CargoColorCode` | Codice colore del pacco selezionato |
+| `UnloadZoneCode` | Codice della zona di scarico selezionata |
 
 ## Configurare A, B e carico
 

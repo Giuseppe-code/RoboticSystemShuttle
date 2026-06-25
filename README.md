@@ -13,7 +13,7 @@ Zones are color-coded: Zone A = Blue, Zone C = Red. Zone B contains an elevated 
 
 Objects have variable weight and fixed size. At the start of the simulation, packages are generated within predefined weight ranges.
 
-> **Current scope:** one loading zone and one unloading zone are implemented.
+> **Current scope:** one loading zone and two color-routed unloading zones are implemented.
 
 
 # features to be implemented

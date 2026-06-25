@@ -12,6 +12,16 @@
 /export/
 /dist/
 
+# Generated simulation outputs
+/artifacts/*
+!/artifacts/.gitkeep
+/logs/*
+!/logs/.gitkeep
+
+# Python cache
+__pycache__/
+*.py[cod]
+
 # User-specific settings
 .vscode/
 .idea/

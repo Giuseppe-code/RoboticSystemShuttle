@@ -66,6 +66,13 @@ size = Vector2(5, 5)
 [sub_resource type="BoxShape3D" id="BoxShape3D_s5t8w"]
 size = Vector3(5, 0, 5)
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_red_unload"]
+albedo_color = Color(0.9, 0.05, 0.04, 1)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_red_unload"]
+material = SubResource("StandardMaterial3D_red_unload")
+size = Vector2(5, 5)
+
 [sub_resource type="ViewportTexture" id="ViewportTexture_5qabv"]
 viewport_path = NodePath("ArmCameraViewport")
 
@@ -161,6 +168,17 @@ shape = SubResource("BoxShape3D_s5t8w")
 
 [node name="PackageSpawner" type="Node3D" parent="zoneB" unique_id=1732758653]
 script = ExtResource("2")
+
+[node name="zoneC" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.001, -7.5)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="zoneC"]
+rotation_order = 3
+layers = 4
+mesh = SubResource("PlaneMesh_red_unload")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="zoneC"]
+shape = SubResource("BoxShape3D_s5t8w")
 
 [node name="ArmCameraViewport" type="SubViewport" parent="." unique_id=760377737]
 size = Vector2i(512, 512)

@@ -4,6 +4,7 @@ import unittest
 from controller.ackermann_mission import (
     AckermannMissionConfig,
     AckermannMissionController,
+    NF1Path2DMotion,
     MissionStateId,
 )
 from controller.manipulator_control import FourJointsManipulatorControl
@@ -74,10 +75,11 @@ class AckermannMissionControllerTest(unittest.TestCase):
             config.max_steering_rate * delta_t,
         )
 
-    def test_state_machine_loads_at_b_and_unloads_at_a(self):
+    def test_state_machine_loads_at_b_and_unloads_at_default_a(self):
         config = AckermannMissionConfig(
             point_a=(0.0, 0.0),
             point_b=(0.0, -1.0),
+            point_c=(1.0, 0.0),
             zone_radius=0.25,
             packages_to_load=[5.0, 5.0, 5.0],
         )
@@ -110,7 +112,8 @@ class AckermannMissionControllerTest(unittest.TestCase):
         self.assertEqual(cart.get_payload_mass(), 5.0)
 
         mission.update(0.1)
-        self.assertEqual(mission.state_id, MissionStateId.DRIVE_TO_A)
+        self.assertEqual(mission.state_id, MissionStateId.DRIVE_TO_UNLOAD)
+        self.assertEqual(mission.selected_unload_label(), "A")
 
         cart.set_pose(*config.point_a)
         mission.update(0.1)
@@ -126,6 +129,74 @@ class AckermannMissionControllerTest(unittest.TestCase):
         mission.update(0.1)
         self.assertTrue(mission.is_done())
         self.assertEqual(len(mission.cargo_events), 2)
+        self.assertEqual(mission.cargo_events[-1]["zone"], "A_unload")
+
+    def test_red_package_unloads_at_c(self):
+        config = AckermannMissionConfig(
+            point_a=(0.0, 0.0),
+            point_b=(0.0, -1.0),
+            point_c=(1.0, 0.0),
+            zone_radius=0.25,
+            packages_to_load=[5.0],
+        )
+        cart = AckermannSlopeLoad(
+            10.0,
+            0.8,
+            0.5,
+            2.0,
+            TerrainProfile([(0.0, 100.0, 0.0)]),
+        )
+        mission = AckermannMissionController(
+            cart,
+            InstantArm(),
+            config=config,
+            logger=None,
+        )
+
+        cart.set_pose(*config.point_b)
+        mission.update(0.1)
+        mission.update(0.1)
+        mission.update(0.1)
+        mission.update(0.1)
+        mission.selected_cargo_color = "red"
+
+        mission.update(0.1)
+        self.assertEqual(mission.state_id, MissionStateId.DRIVE_TO_UNLOAD)
+        self.assertEqual(mission.selected_unload_label(), "C")
+
+        cart.set_pose(*config.point_c)
+        mission.update(0.1)
+        mission.update(0.1)
+        mission.update(0.1)
+
+        self.assertEqual(cart.get_payload_mass(), 0.0)
+        self.assertEqual(mission.cargo_events[-1]["zone"], "C_unload")
+
+    def test_nf1_preplans_routes_between_b_and_c(self):
+        config = AckermannMissionConfig(
+            point_a=(0.0, 0.0),
+            point_b=(0.0, -1.0),
+            point_c=(1.0, 0.0),
+            zone_radius=0.25,
+        )
+        cart = AckermannSlopeLoad(
+            10.0,
+            0.8,
+            0.5,
+            2.0,
+            TerrainProfile([(0.0, 100.0, 0.0)]),
+        )
+        trajectory = NF1Path2DMotion()
+        AckermannMissionController(
+            cart,
+            InstantArm(),
+            config=config,
+            trajectory=trajectory,
+            logger=None,
+        )
+
+        self.assertIn((config.point_b, config.point_c), trajectory.planned_paths)
+        self.assertIn((config.point_c, config.point_b), trajectory.planned_paths)
 
     def test_vision_pick_creeps_forward_after_empty_scan(self):
         config = AckermannMissionConfig(

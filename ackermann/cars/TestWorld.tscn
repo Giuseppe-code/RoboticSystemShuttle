@@ -77,6 +77,12 @@ size = Vector2(5, 5)
 [sub_resource type="ViewportTexture" id="ViewportTexture_5qabv"]
 viewport_path = NodePath("ArmCameraViewport")
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_k7rxj"]
+albedo_color = Color(1, 1, 0.12156863, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_4ksr8"]
+material = SubResource("StandardMaterial3D_k7rxj")
+
 [node name="TestWorld" type="Node3D" unique_id=239139324]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1838348623]
@@ -197,5 +203,9 @@ grow_horizontal = 0
 texture = SubResource("ViewportTexture_5qabv")
 expand_mode = 2
 stretch_mode = 5
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=435463921]
+transform = Transform3D(1, 0, 0, 0, 3.249, 0, 0, 0, 5.488, 20, 2, 0)
+mesh = SubResource("BoxMesh_4ksr8")
 
 [editable path="DemoCar/ArmMount/RobotArm"]

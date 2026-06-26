@@ -205,7 +205,7 @@ expand_mode = 2
 stretch_mode = 5
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=435463921]
-transform = Transform3D(1, 0, 0, 0, 4.251, 0, 0, 0, 6, 20, 2, 0)
+transform = Transform3D(1, 0, 0, 0, 3.249, 0, 0, 0, 5.488, 20, 2, 0)
 mesh = SubResource("BoxMesh_4ksr8")
 
 [editable path="DemoCar/ArmMount/RobotArm"]

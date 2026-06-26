@@ -37,6 +37,7 @@ material = SubResource("StandardMaterial3D_uwhkb")
 size = Vector2(6, 50)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_51iks"]
+albedo_color = Color(0, 0.009277024, 0.009277017, 1)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_uwhkb"]
 size = Vector3(6, 0.1, 50)
@@ -67,7 +68,7 @@ size = Vector2(5, 5)
 size = Vector3(5, 0, 5)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_red_unload"]
-albedo_color = Color(0.9, 0.05, 0.04, 1)
+albedo_color = Color(0.7254419, 0.026485005, 0.021011382, 1)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_red_unload"]
 material = SubResource("StandardMaterial3D_red_unload")
@@ -91,7 +92,7 @@ mesh = SubResource("2")
 shape = SubResource("3")
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=521090752]
-transform = Transform3D(-0.77897274, 0.32083872, -0.5387616, 0.0063757645, 0.86319774, 0.5048258, 0.6270254, 0.38981044, -0.6744531, 2.0872087, 10.715887, -18.364792)
+transform = Transform3D(-0.91107714, 0.305547, -0.27673006, 0.039960973, 0.73358923, 0.6784173, 0.41029453, 0.6070321, -0.6805663, 7.648651, 18.863588, -30.372147)
 current = true
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=2000399111]
@@ -145,7 +146,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 0.001, 0)
 [node name="MeshInstance3D" type="MeshInstance3D" parent="zoneA" unique_id=396758511]
 transform = Transform3D(1, 0, 0, 0, 1.0034729, 0, 0, 0, 1, 0, 0, 0)
 rotation_order = 3
-layers = 4
+layers = 8
 mesh = SubResource("PlaneMesh_uwhkb")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="zoneA" unique_id=828818676]
@@ -167,11 +168,11 @@ shape = SubResource("BoxShape3D_s5t8w")
 script = ExtResource("2")
 
 [node name="zoneC" type="StaticBody3D" parent="." unique_id=326484329]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.001, -7.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41, 1.002, -18.5)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="zoneC" unique_id=954032852]
 rotation_order = 3
-layers = 4
+layers = 8
 mesh = SubResource("PlaneMesh_red_unload")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="zoneC" unique_id=835515010]

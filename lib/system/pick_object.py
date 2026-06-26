@@ -13,12 +13,12 @@ from lib.system.controllers import *
 from manipulator_control import *
 from object_finder import *
 
-
-displ_x_controller = PID_Controller(0.0005, 0, 0, 0.1)
-displ_y_controller = PID_Controller(0.0005, 0, 0, 0.1)
+DEAD_ZONE = 15
+displ_x_controller = PID_Controller(0.000005, 0, 0, 1.001)
+displ_y_controller = PID_Controller(0.000005, 0, 0, 1.001)
 
 robot = FourJointsManipulatorControl()
-
+flagReset=True
 x_target_robot = 0.8
 y_target_robot = 0.0
 z_target_robot = 0.5
@@ -38,9 +38,7 @@ target_color = sys.argv[1] if len(sys.argv) > 1 else "red"
 obj_finder = ObjectFinder(target_color)
 while True:
     dds.wait('tick')
-
     delta_t = t.elapsed()
-
     ## image processing
     img = imr.request_image(dds, 512, 512)
 
@@ -50,25 +48,25 @@ while True:
         errx = (256 - cx)
         erry = (256 - cy)
 
-        displ_x = displ_x_controller.evaluate(delta_t, errx)
-        displ_y = displ_y_controller.evaluate(delta_t, erry)
+        displ_x = displ_x_controller.evaluate(delta_t, errx) if abs(errx) > DEAD_ZONE else 0
+        displ_y = displ_y_controller.evaluate(delta_t, erry) if abs(erry) > DEAD_ZONE else 0
 
         print('Error vs. image center ', (errx, erry), ' - Displacement ', (displ_x, displ_y))
 
-        if (abs(errx) < 5)and(abs(erry) < 5):
+        if abs(errx) < DEAD_ZONE and abs(erry) < DEAD_ZONE:
             z_target_robot -= 0.01
-            if z_target_robot < 0.02:
+            if z_target_robot < -5:
                 print("Object got")
                 break
 
         (x, y, z, a) = robot.get_pose()
         x_target_robot = x + displ_x
-        y_target_robot = y + displ_y
+        y_target_robot = y - displ_y
 
-        print((x,y), " - " , (x_target_robot, y_target_robot))
-        if not(robot.set_target(x_target_robot, y_target_robot, z_target_robot, math.radians(-90))):
+        if not robot.set_target(x_target_robot, y_target_robot, z_target_robot, math.radians(-90)):
             x_target_robot -= displ_x
-            y_target_robot -= displ_y
+            y_target_robot += displ_y 
+            print("Non raggiungibile")
 
 
     # robot control

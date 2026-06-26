@@ -9,13 +9,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import cv2
 import numpy as np
 
-# import os
-# from pathlib import Path
+import os
+from pathlib import Path
 
-# import PyQt5
-# from PyQt5.QtWidgets import QWidget # others imports
+#import PyQt5
+#from PyQt5.QtWidgets import QWidget # others imports
 
-# os.environ["QT_QPA_PLATFORM_PLUGIN_PATH"] = os.fspath(
+#os.environ["QT_QPA_PLATFORM_PLUGIN_PATH"] = os.fspath(
 #     Path(PyQt5.__file__).resolve().parent / "Qt5" / "plugins"
 # )
 
@@ -98,7 +98,9 @@ while True:
             y_displ = y_tracker.evaluate(delta_t, error_y)
             y_target_robot -= y_displ
             print(error_x, error_y, x_displ, y_displ)
-            if (abs(error_x) <= 2)and(abs(error_y) <= 2):
+            if (abs(error_x) <= 5)and(abs(error_y) <= 5):
+                print("Targetlock")
+                print("Presooooo")
                 target_locked_count += 1
                 if target_locked_count > 10:
                     target_locked = True
@@ -117,6 +119,7 @@ while True:
     cv2.imshow('binary_image', binary_image)
 
     k = cv2.waitKeyEx(1)
+    #print("hAI INSERITO", k)
     if (k & 0xff) == ord('q'):
         break
     elif (k & 0xff) == ord('t'):

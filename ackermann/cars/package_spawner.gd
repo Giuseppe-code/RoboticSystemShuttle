@@ -10,7 +10,7 @@ extends Node3D
 
 const PACKAGE_COLORS := [
 	Color(0.04, 0.20, 0.85, 1.0),
-	#Color(0.987, 0.143, 0.0, 1.0),
+	Color(0.987, 0.143, 0.0, 1.0),
 
 ]
 
@@ -32,9 +32,9 @@ func _spawn_packages() -> void:
 		package_body.collision_layer = package_collision_layer
 		package_body.collision_mask = package_collision_mask
 		package_body.position = _random_package_position(
-			half_x,
-			half_z,
-			center_y,
+			0,
+			0,
+			0.2,
 			placed_positions
 		)
 		placed_positions.append(package_body.position)

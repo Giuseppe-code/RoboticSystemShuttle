@@ -69,7 +69,7 @@ class AckermannMissionConfig:
     vision_scan_steps: int = 16
     vision_scan_start_angle: float = math.radians(-180)
     vision_min_track_area: int = 2500
-    vision_track_margin_px: int = 40
+    vision_track_margin_px: int = 20
     vision_cart_approach_enabled: bool = True
     vision_cart_approach_speed: float = 0.22
     vision_cart_approach_step: float = 0.35

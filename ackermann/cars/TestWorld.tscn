@@ -151,9 +151,6 @@ mesh = SubResource("PlaneMesh_uwhkb")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="zoneA" unique_id=828818676]
 shape = SubResource("BoxShape3D_5qabv")
 
-[node name="PackageSpawner" type="Node3D" parent="zoneA" unique_id=397665337]
-script = ExtResource("2")
-
 [node name="zoneB" type="StaticBody3D" parent="." unique_id=110125135]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.5, 1.002, 0)
 collision_layer = 4

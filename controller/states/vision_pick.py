@@ -74,13 +74,26 @@ class VisionPickState(MissionState):
         if self.mode == "scan":
             if detection is not None:
                 area = detection.get("area", 0)
-                best_area = 0
-                if self.best_detection is not None:
-                    best_area = self.best_detection.get("area", 0)
+        
+                # aggiorna sempre il best
+                best_area = self.best_detection.get("area", 0) if self.best_detection else 0
                 if area > best_area:
                     self.best_detection = detection
                     self.best_pose = mission.arm.get_pose()
                     mission.last_vision_detection = detection
+
+
+                # Fix 3: se trovi subito qualcosa di buono, passa a track senza aspettare il giro completo
+                if area > mission.config.vision_min_track_area:
+                    if self._is_trackable(mission, detection):
+                        self.best_detection = detection
+                        self.best_pose = mission.arm.get_pose()
+                        mission.last_vision_detection = detection
+                        self.mode = "track"
+                        self.lock_count = 0
+                        self.track_pose_timer = 0.0
+                        return self.state_id, command
+
             self._advance_scan_if_ready(mission)
             return self.state_id, command
 
@@ -101,8 +114,10 @@ class VisionPickState(MissionState):
         cx = detection["cx"]
         cy = detection["cy"]
         center_x, center_y = mission.config.vision_center
+        print(f"[DEBUG] center_x={center_x} center_y={center_y} cx={cx} cy={cy}")
         err_x = center_x - cx
         err_y = center_y - cy
+        print(f"[DEBUG] err_x={err_x} err_y={err_y}")
         mission.last_vision_detection = detection
 
         if (
@@ -136,9 +151,10 @@ class VisionPickState(MissionState):
         x, y, z, a = mission.arm.get_pose()
         gain = mission.config.vision_pixel_to_arm_gain
         max_step = mission.config.vision_max_adjust_step
-        step_x = self._clamp(err_x * gain, -max_step, max_step)
-        step_y = self._clamp(err_y * gain, -max_step, max_step)
+        step_x = self._clamp(-err_y * gain, -max_step, max_step)
+        step_y = self._clamp(-err_x * gain, -max_step, max_step)
         target = (x + step_x, y + step_y, z, a)
+        print(f"[track] cy={cy} err_y={err_y:.1f} step_x={step_x:.4f} → braccio {'avanza' if step_x > 0 else 'arretra'}")
         if not mission.set_arm_target_or_warn(target, "VISION_PICK_TRACK"):
             self._advance_scan_if_ready(mission, force=True)
         return self.state_id, command

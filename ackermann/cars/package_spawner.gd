@@ -32,7 +32,7 @@ func _spawn_packages() -> void:
 		package_body.collision_layer = package_collision_layer
 		package_body.collision_mask = package_collision_mask
 		package_body.position = _random_package_position(
-			0,
+			0.25,
 			0,
 			0.2,
 			placed_positions

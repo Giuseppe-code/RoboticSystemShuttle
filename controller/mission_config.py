@@ -62,7 +62,7 @@ class AckermannMissionConfig:
     vision_sample_period: float = 0.12
     vision_pixel_to_arm_gain: float = 0.0005
     vision_max_adjust_step: float = 0.04
-    vision_scan_dwell: float = 0.35
+    vision_scan_dwell: float = 1.5
     vision_scan_poses: tuple | None = None
     vision_scan_radius: float = 0.80
     vision_scan_heights: tuple = (0.35, 0.50, 0.65)
@@ -74,7 +74,7 @@ class AckermannMissionConfig:
     vision_cart_approach_speed: float = 0.22
     vision_cart_approach_step: float = 0.35
     vision_cart_max_approach: float = 2.0
-    vision_track_pose_timeout: float = 2.0
+    vision_track_pose_timeout: float = 0.5
 
     def __post_init__(self):
         if self.vision_targets is None:

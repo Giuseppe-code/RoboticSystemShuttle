@@ -153,6 +153,8 @@ def main():
             packages_to_load=[5.0, 5.0, 5.0],
             vision_pixel_tolerance=args.vision_tolerance,
             vision_lock_frames=args.vision_lock_frames,
+            vision_scan_dwell=1.5,  
+            vision_center=(256,256),
         )
         if not args.no_vision:
             vision = VisionProvider(dds, mission_config, output_dir=args.debug_dir)

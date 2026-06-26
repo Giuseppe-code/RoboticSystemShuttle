@@ -6,7 +6,11 @@ try:
     from .world import *
 except ImportError:
     from world import *
-import numpy as np
+from collections import deque
+try:
+    import numpy as np
+except ImportError:
+    np = None
 
 try:
     import cv2
@@ -27,8 +31,8 @@ class NF1Planner:
         self.path = []
 
     def world_to_image(self):
-        if cv2 is None:
-            raise RuntimeError("OpenCV is required only to render the NF1 debug image")
+        if cv2 is None or np is None:
+            raise RuntimeError("OpenCV and NumPy are required only to render the NF1 debug image")
         font = cv2.FONT_HERSHEY_SIMPLEX
         image = np.zeros((self.world.x_size, self.world.y_size,3), dtype = np.uint8)
         for k in self.mark_map:
@@ -91,30 +95,27 @@ class NF1Planner:
 
 
     def __mark_all(self, point, value):
-        v = self.mark_map[point]
-        if v == -1:
-            return
+        queue = deque([(point, value)])
+        directions = [(0, -1), (0, 1), (1, 0), (-1, 0)]
 
-        go = False
-        if v is None:
-            go = True
-        elif value < v:
-            go = True
+        while queue:
+            current, current_value = queue.popleft()
+            v = self.mark_map[current]
+            if v == -1:
+                continue
+            if v is not None and current_value >= v:
+                continue
 
-        if go:
-            self.mark_map[point] = value
-            n = self.__add(point, (0, -1))
-            s = self.__add(point, (0, 1))
-            e = self.__add(point, (1, 0))
-            w = self.__add(point, (-1, 0))
-            if n is not None:
-                self.__mark_all(n, value + 1)
-            if s is not None:
-                self.__mark_all(s, value + 1)
-            if e is not None:
-                self.__mark_all(e, value + 1)
-            if w is not None:
-                self.__mark_all(w, value + 1)
+            self.mark_map[current] = current_value
+            for direction in directions:
+                next_point = self.__add(current, direction)
+                if next_point is None:
+                    continue
+                next_value = self.mark_map[next_point]
+                if next_value == -1:
+                    continue
+                if next_value is None or current_value + 1 < next_value:
+                    queue.append((next_point, current_value + 1))
 
     def __add(self, pt, incr):
         x = pt[0] + incr[0]

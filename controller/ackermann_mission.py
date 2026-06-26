@@ -83,7 +83,9 @@ class AckermannMissionController:
             1.0, 3.0,
             5.0, math.radians(40),
         )
-        self.trajectory = trajectory or NF1Path2DMotion()
+        self.trajectory = trajectory or NF1Path2DMotion(
+            obstacles=self.config.navigation_obstacles
+        )
         self.command_smoother = CommandSmoother(
             self.config.max_target_speed_rate,
             self.config.max_torque_rate,

@@ -129,8 +129,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--duration", type=float, default=120.0)
     parser.add_argument("--point-b-y", type=float, default=-25.0)
-    parser.add_argument("--point-c-x", type=float, default=5.0)
-    parser.add_argument("--point-c-y", type=float, default=0.0)
+    parser.add_argument("--point-c-x", type=float, default=None)
+    parser.add_argument("--point-c-y", type=float, default=None)
     parser.add_argument("--zone-radius", type=float, default=0.35)
     parser.add_argument("--vision-tolerance", type=int, default=70)
     parser.add_argument("--vision-lock-frames", type=int, default=1)
@@ -145,10 +145,15 @@ def main():
 
     vision = None
     try:
+        default_config = AckermannMissionConfig()
+        point_c = (
+            default_config.point_c[0] if args.point_c_x is None else args.point_c_x,
+            default_config.point_c[1] if args.point_c_y is None else args.point_c_y,
+        )
         mission_config = AckermannMissionConfig(
             point_a=(0.0, 0.0),
             point_b=(0.0, args.point_b_y),
-            point_c=(args.point_c_x, args.point_c_y),
+            point_c=point_c,
             zone_radius=args.zone_radius,
             packages_to_load=[5.0, 5.0, 5.0],
             vision_pixel_tolerance=args.vision_tolerance,

@@ -16,11 +16,19 @@ except ImportError:
 class NF1Path2DMotion:
     """Waypoint generator backed by the NF1 grid planner."""
 
-    def __init__(self, scale=1.0, margin=5.0, waypoint_threshold=1.0, lookahead_steps=3):
+    def __init__(
+        self,
+        scale=1.0,
+        margin=5.0,
+        waypoint_threshold=1.0,
+        lookahead_steps=3,
+        obstacles=None,
+    ):
         self.scale = scale
         self.margin = margin
         self.waypoint_threshold = waypoint_threshold
         self.lookahead_steps = lookahead_steps
+        self.obstacles = tuple(obstacles or ())
         self.path = []
         self.current_index = 0
         self.offset = (0.0, 0.0)
@@ -46,6 +54,8 @@ class NF1Path2DMotion:
         width = (max_x - min_x) + 2 * self.margin + self.scale
         height = (max_y - min_y) + 2 * self.margin + self.scale
         world = World(width, height, self.scale)
+        for obstacle in self.obstacles:
+            world.add_rectangle_obstacle(*self._obstacle_bounds(obstacle))
 
         planner = NF1Planner(world)
         plan_start = self._to_planner_point(start)
@@ -85,6 +95,14 @@ class NF1Path2DMotion:
 
     def _to_mission_point(self, point):
         return point[0] - self.offset[0], point[1] - self.offset[1]
+
+    def _obstacle_bounds(self, obstacle):
+        center, size = obstacle
+        half_width = size[0] / 2.0
+        half_height = size[1] / 2.0
+        min_point = self._to_planner_point((center[0] - half_width, center[1] - half_height))
+        max_point = self._to_planner_point((center[0] + half_width, center[1] + half_height))
+        return min_point[0], min_point[1], max_point[0], max_point[1]
 
     def _route_key(self, start, end):
         return tuple(start), tuple(end)

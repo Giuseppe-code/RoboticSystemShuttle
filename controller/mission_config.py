@@ -98,7 +98,7 @@ class AckermannMissionConfig:
         self.vision_target_min_area = self.vision_targets.min_area
         self.vision_target_max_area = self.vision_targets.max_area
         if self.arrival_threshold is None:
-            self.arrival_threshold = 0.65
+            self.arrival_threshold = 0.35
         if self.vision_scan_poses is None:
             self.vision_scan_poses = self._build_vision_scan_poses()
 

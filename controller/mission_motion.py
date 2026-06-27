@@ -41,6 +41,7 @@ class NF1Path2DMotion:
         return self.planned_paths[route_key]
 
     def _build_path(self, start, end):
+        print("Inizio / fine", start, end)
         min_x = min(start[0], end[0])
         max_x = max(start[0], end[0])
         min_y = min(start[1], end[1])
@@ -59,7 +60,7 @@ class NF1Path2DMotion:
         plan_end = self._to_planner_point(end)
         grid_path = planner.plan(plan_start, plan_end)
         img2 = planner.world_to_image()
-        cv2.imwrite(f"debug_nf{self.numImg}_path.png", img2)  # salva su file
+        cv2.imwrite(f"img_path/debug_nf{self.numImg}_path.png", img2)  # salva su file
         self.numImg=self.numImg+1
         path = [self._to_mission_point(world.to_world(*p)) for p in grid_path]
         if path:

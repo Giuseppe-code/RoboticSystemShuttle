@@ -1,7 +1,4 @@
-try:
-    from ..mission_types import MissionCommand, MissionStateId
-except ImportError:
-    from mission_types import MissionCommand, MissionStateId
+from mission_types import MissionCommand, MissionStateId
 
 
 class MissionState:

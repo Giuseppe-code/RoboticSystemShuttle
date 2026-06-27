@@ -1,9 +1,5 @@
-try:
-    from ..mission_types import MissionStateId
-    from .base import MissionState
-except ImportError:
-    from mission_types import MissionStateId
-    from states.base import MissionState
+from mission_types import MissionStateId
+from states.base import MissionState
 
 
 class DoneState(MissionState):

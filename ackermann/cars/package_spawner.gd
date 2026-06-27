@@ -10,7 +10,7 @@ extends Node3D
 
 const PACKAGE_COLORS := [
 	Color(0.04, 0.20, 0.85, 1.0),
-	#Color(0.987, 0.143, 0.0, 1.0),
+	Color(0.987, 0.143, 0.0, 1.0),
 
 ]
 

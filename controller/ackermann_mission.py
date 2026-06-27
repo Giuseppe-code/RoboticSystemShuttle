@@ -45,7 +45,7 @@ class AckermannMissionController:
         self.arm = arm
         self.config = config or AckermannMissionConfig()
         self.speed_controller = speed_controller or PID_Controller(
-            30.0, 0.1, 7, 70.0
+            20.0, 0, 1, 100.0
         )
         self.position_controller = position_controller or Polar2DController(
             1.0, 3.0,

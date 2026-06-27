@@ -1,9 +1,5 @@
-try:
-    from ..mission_types import MissionStateId
-    from .arm_move import ArmMoveState
-except ImportError:
-    from mission_types import MissionStateId
-    from states.arm_move import ArmMoveState
+from mission_types import MissionStateId
+from states.arm_move import ArmMoveState
 
 
 class CargoArmState(ArmMoveState):

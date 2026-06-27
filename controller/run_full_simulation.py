@@ -219,7 +219,7 @@ def main():
         )
         mission_config = AckermannMissionConfig(
             point_a=(0.0, 0.0),
-            point_b=(0.0, args.point_b_y),
+            point_b=(0.0, -24.5),
             point_c=point_c,
             zone_radius=args.zone_radius,
             packages_to_load=[5.0, 5.0, 5.0],

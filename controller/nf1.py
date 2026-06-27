@@ -34,7 +34,7 @@ class NF1Planner:
         if cv2 is None or np is None:
             raise RuntimeError("OpenCV and NumPy are required only to render the NF1 debug image")
         font = cv2.FONT_HERSHEY_SIMPLEX
-        image = np.zeros((self.world.x_size, self.world.y_size,3), dtype = np.uint8)
+        image = np.zeros((int(self.world.x_size), int(self.world.y_size), 3), dtype=np.uint8)
         for k in self.mark_map:
             v = self.mark_map[k]
             if v >= 0:

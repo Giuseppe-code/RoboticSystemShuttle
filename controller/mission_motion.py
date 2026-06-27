@@ -1,4 +1,5 @@
 import math
+import cv2
 
 try:
     from .mission_types import MissionCommand
@@ -25,6 +26,7 @@ class NF1Path2DMotion:
         obstacles=None,
         obstacle_padding=2.0,
     ):
+        self.numImg=0
         self.scale = scale
         self.margin = margin
         self.waypoint_threshold = waypoint_threshold
@@ -64,6 +66,9 @@ class NF1Path2DMotion:
         plan_start = self._to_planner_point(start)
         plan_end = self._to_planner_point(end)
         grid_path = planner.plan(plan_start, plan_end)
+        img2 = planner.world_to_image()
+        cv2.imwrite(f"debug_nf{self.numImg}_path.png", img2)  # salva su file
+        self.numImg=self.numImg+1
         path = [self._to_mission_point(world.to_world(*p)) for p in grid_path]
         if path:
             path[0] = start

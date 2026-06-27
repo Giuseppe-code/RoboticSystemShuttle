@@ -41,7 +41,7 @@ class AckermannMissionConfig:
     point_b: tuple = (0.0, -25.0)#0 -25
     point_c: tuple = (18, -41)
     navigation_obstacles: tuple = field(default_factory=lambda: (
-        ((0.0, -12.0), (6.0, 1.0)),
+        ((0, -20.0), (6.0, 1.0)),
     ))
     zone_radius: float = 0.35
     packages_to_load: list = field(default_factory=lambda: [5.0, 5.0, 5.0])

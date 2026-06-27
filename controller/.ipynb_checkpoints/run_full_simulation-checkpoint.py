@@ -2,6 +2,7 @@ import argparse
 import json
 import math
 import sys
+import cv2
 from pathlib import Path
 
 import cv2
@@ -124,13 +125,16 @@ def publish_state(dds, cart, arm, mission, command):
     dds.publish("z", arm_z, DDS.DDS_TYPE_FLOAT)
     dds.publish("a", arm_a, DDS.DDS_TYPE_FLOAT)
 
-
+def report():
+    dps.plot('grafici/velocita.png')
+    dpa.plot('grafici/angoli.png')
+    
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--duration", type=float, default=120.0)
     parser.add_argument("--point-b-y", type=float, default=-25.0)
-    parser.add_argument("--point-c-x", type=float, default=5.0)
-    parser.add_argument("--point-c-y", type=float, default=0.0)
+    parser.add_argument("--point-c-x", type=float, default=None)
+    parser.add_argument("--point-c-y", type=float, default=None)
     parser.add_argument("--zone-radius", type=float, default=0.35)
     parser.add_argument("--vision-tolerance", type=int, default=70)
     parser.add_argument("--vision-lock-frames", type=int, default=1)
@@ -145,14 +149,21 @@ def main():
 
     vision = None
     try:
+        default_config = AckermannMissionConfig()
+        point_c = (
+            default_config.point_c[0] if args.point_c_x is None else args.point_c_x,
+            default_config.point_c[1] if args.point_c_y is None else args.point_c_y,
+        )
         mission_config = AckermannMissionConfig(
             point_a=(0.0, 0.0),
             point_b=(0.0, args.point_b_y),
-            point_c=(args.point_c_x, args.point_c_y),
+            point_c=point_c,
             zone_radius=args.zone_radius,
             packages_to_load=[5.0, 5.0, 5.0],
             vision_pixel_tolerance=args.vision_tolerance,
             vision_lock_frames=args.vision_lock_frames,
+            vision_scan_dwell=1.5,  
+            vision_center=(256,256),
         )
         if not args.no_vision:
             vision = VisionProvider(dds, mission_config, output_dir=args.debug_dir)
@@ -192,7 +203,7 @@ def main():
 
             command = mission.step(delta_t)
             publish_state(dds, cart, arm, mission, command)
-
+            
             if sim_time - last_status >= 2.0:
                 pose = cart.get_pose_3d()
                 print(
@@ -216,6 +227,7 @@ def main():
         report["vision_detections"] = vision.detection_count if vision else 0
         report["last_vision_detection"] = vision.last_detection if vision else None
         print("[report] " + json.dumps(report, indent=2, default=str), flush=True)
+        report()
         return 0 if report["mission_complete"] else 2
     finally:
         dds.stop()

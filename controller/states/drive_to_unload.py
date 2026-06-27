@@ -1,7 +1,4 @@
-try:
-    from .drive_to_point import DriveToPointState
-except ImportError:
-    from states.drive_to_point import DriveToPointState
+from .drive_to_point import DriveToPointState
 
 
 class DriveToUnloadState(DriveToPointState):

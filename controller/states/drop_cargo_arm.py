@@ -1,7 +1,4 @@
-try:
-    from .cargo_arm import CargoArmState
-except ImportError:
-    from states.cargo_arm import CargoArmState
+from .cargo_arm import CargoArmState
 
 
 class DropCargoArmState(CargoArmState):

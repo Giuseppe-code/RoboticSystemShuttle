@@ -1,11 +1,6 @@
 import math
-
-try:
-    from ..mission_types import MissionCommand
-    from .base import MissionState
-except ImportError:
-    from mission_types import MissionCommand
-    from states.base import MissionState
+from mission_types import MissionCommand
+from states.base import MissionState
 
 
 class DriveToPointState(MissionState):

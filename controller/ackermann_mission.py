@@ -45,11 +45,11 @@ class AckermannMissionController:
         self.arm = arm
         self.config = config or AckermannMissionConfig()
         self.speed_controller = speed_controller or PID_Controller(
-            20.0, 0, 1, 100.0
+            10.0, 0, 0, 100.0
         )
         self.position_controller = position_controller or Polar2DController(
-            1.0, 3.0,
-            2.0, math.radians(40),
+            0.8, 2.0,
+            0.9, math.radians(40),
         )
         self.trajectory = trajectory or NF1Path2DMotion(
             obstacles=self.config.navigation_obstacles

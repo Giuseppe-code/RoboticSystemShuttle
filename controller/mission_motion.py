@@ -1,17 +1,9 @@
 import math
 import cv2
 
-try:
-    from .mission_types import MissionCommand
-except ImportError:
-    from mission_types import MissionCommand
-
-try:
-    from .nf1 import NF1Planner
-    from .world import World
-except ImportError:
-    from nf1 import NF1Planner
-    from world import World
+from mission_types import MissionCommand
+from nf1 import NF1Planner
+from world import World
 
 
 class NF1Path2DMotion:

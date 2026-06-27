@@ -8,42 +8,10 @@ from lib.system.cart import PackageTransferZone
 from lib.system.controllers import PID_Controller
 from lib.system.polar import Polar2DController
 
-try:
-    from .mission_config import (
-        AckermannMissionConfig,
-        ArmMissionPoses,
-        CargoRoutingConfig,
-        VisionTargetConfig,
-    )
-    from .mission_motion import CommandSmoother, NF1Path2DMotion
-    from .mission_types import MissionCommand, MissionStateId
-    from .states import (
-        ArmMoveState,
-        CargoArmState,
-        DoneState,
-        DriveToPointState,
-        DriveToUnloadState,
-        DropCargoArmState,
-        VisionPickState,
-    )
-except ImportError:
-    from mission_config import (
-        AckermannMissionConfig,
-        ArmMissionPoses,
-        CargoRoutingConfig,
-        VisionTargetConfig,
-    )
-    from mission_motion import CommandSmoother, NF1Path2DMotion
-    from mission_types import MissionCommand, MissionStateId
-    from states import (
-        ArmMoveState,
-        CargoArmState,
-        DoneState,
-        DriveToPointState,
-        DriveToUnloadState,
-        DropCargoArmState,
-        VisionPickState,
-    )
+from mission_config import *
+from mission_motion import CommandSmoother, NF1Path2DMotion
+from mission_types import MissionCommand, MissionStateId
+from states import *
 
 
 class AckermannMissionController:

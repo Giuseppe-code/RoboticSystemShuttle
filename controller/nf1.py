@@ -2,20 +2,12 @@
 # nf1.py
 #
 
-try:
-    from .world import *
-except ImportError:
-    from world import *
+from world import *
 from collections import deque
-try:
-    import numpy as np
-except ImportError:
-    np = None
+import numpy as np
+import cv2
 
-try:
-    import cv2
-except ImportError:
-    cv2 = None
+
 
 class NF1Planner:
 
@@ -126,12 +118,3 @@ class NF1Planner:
             return (x,y)
 
 
-if __name__ == "__main__":
-    w = World(1000, 1000, 50)
-    w.add_rectangle_obstacle(500, 500, 700, 600)
-    w.add_rectangle_obstacle(200, 200, 300, 800)
-    nf1 = NF1Planner(w)
-    nf1.plan((500,200),(900,900))
-    img = nf1.world_to_image()
-    cv2.imshow("world", img)
-    cv2.waitKey(0)

@@ -2,10 +2,10 @@ import argparse
 import json
 import math
 import sys
-import cv2
 from pathlib import Path
 
 import cv2
+from matplotlib import pylab
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -13,6 +13,7 @@ sys.path.insert(0, str(ROOT / "controller"))
 
 from lib.dds.dds import DDS
 from lib.dds.image_reader import ImageReader
+from lib.data.dataplot import DataPlotter
 from lib.system.cart import AckermannSlopeLoad, MeasuredTerrainProfile
 from lib.system.object_finder import ObjectFinder
 from lib.utils.time import Time
@@ -96,6 +97,70 @@ class VisionProvider:
             cv2.imwrite(str(self.output_dir / f"vision_{self.detection_count:02d}_mask.png"), mask)
 
 
+def build_plotters():
+    speed_plot = DataPlotter()
+    speed_plot.set_x("time (seconds)")
+    speed_plot.add_y("target_speed", "Target Linear Speed")
+    speed_plot.add_y("current_speed", "Current Linear Speed")
+
+    steering_plot = DataPlotter()
+    steering_plot.set_x("time (seconds)")
+    steering_plot.add_y("steering_angle", "Steering Angle (degrees)")
+
+    arm_plot = DataPlotter()
+    arm_plot.set_x("time (seconds)")
+    arm_plot.add_y("theta0", "Joint 0 (degrees)")
+    arm_plot.add_y("theta1", "Joint 1 (degrees)")
+    arm_plot.add_y("theta2", "Joint 2 (degrees)")
+    arm_plot.add_y("theta3", "Joint 3 (degrees)")
+
+    slope_plot = DataPlotter()
+    slope_plot.set_x("time (seconds)")
+    slope_plot.add_y("payload", "Payload Mass (kg)")
+    slope_plot.add_y("height", "Height (m)")
+    slope_plot.add_y("slope", "Slope (degrees)")
+    slope_plot.add_y("mission_state", "Mission State")
+
+    return speed_plot, steering_plot, arm_plot, slope_plot
+
+
+def append_plot_data(plotters, sim_time, cart, arm, mission, command):
+    speed_plot, steering_plot, arm_plot, slope_plot = plotters
+
+    pose_3d = cart.get_pose_3d()
+    current_speed, _ = cart.get_speed()
+    theta0, theta1, theta2, theta3 = arm.get_joint_angles()
+
+    speed_plot.append_x(sim_time)
+    speed_plot.append_y("target_speed", command.target_speed)
+    speed_plot.append_y("current_speed", current_speed)
+
+    steering_plot.append_x(sim_time)
+    steering_plot.append_y("steering_angle", math.degrees(command.steering_angle))
+
+    arm_plot.append_x(sim_time)
+    arm_plot.append_y("theta0", math.degrees(theta0))
+    arm_plot.append_y("theta1", math.degrees(theta1))
+    arm_plot.append_y("theta2", math.degrees(theta2))
+    arm_plot.append_y("theta3", math.degrees(theta3))
+
+    slope_plot.append_x(sim_time)
+    slope_plot.append_y("payload", cart.get_payload_mass())
+    slope_plot.append_y("height", pose_3d[2])
+    slope_plot.append_y("slope", math.degrees(pose_3d[4]))
+    slope_plot.append_y("mission_state", mission.state_code())
+
+
+def show_plotters(plotters):
+    for figure_number, plotter in enumerate(plotters, start=1):
+        pylab.figure(figure_number)
+        for varname, label in plotter.y_label.items():
+            pylab.plot(plotter.x_data, plotter.y_data[varname], label=label)
+        pylab.xlabel(plotter.x_label)
+        pylab.legend()
+    pylab.show()
+
+
 def publish_state(dds, cart, arm, mission, command):
     pose_3d = cart.get_pose_3d()
     theta0, theta1, theta2, theta3 = arm.get_joint_angles()
@@ -125,10 +190,7 @@ def publish_state(dds, cart, arm, mission, command):
     dds.publish("z", arm_z, DDS.DDS_TYPE_FLOAT)
     dds.publish("a", arm_a, DDS.DDS_TYPE_FLOAT)
 
-def report():
-    dps.plot('grafici/velocita.png')
-    dpa.plot('grafici/angoli.png')
-    
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--duration", type=float, default=120.0)
@@ -140,6 +202,7 @@ def main():
     parser.add_argument("--vision-lock-frames", type=int, default=1)
     parser.add_argument("--godot-delta", action="store_true")
     parser.add_argument("--no-vision", action="store_true")
+    parser.add_argument("--no-plots", action="store_true")
     parser.add_argument("--debug-dir", type=Path, default=ROOT / "logs" / "vision")
     args = parser.parse_args()
 
@@ -186,6 +249,7 @@ def main():
             mission_config,
             vision_callback=vision,
         )
+        plotters = build_plotters()
 
         timer = Time()
         timer.start()
@@ -203,7 +267,8 @@ def main():
 
             command = mission.step(delta_t)
             publish_state(dds, cart, arm, mission, command)
-            
+            append_plot_data(plotters, sim_time, cart, arm, mission, command)
+
             if sim_time - last_status >= 2.0:
                 pose = cart.get_pose_3d()
                 print(
@@ -227,7 +292,8 @@ def main():
         report["vision_detections"] = vision.detection_count if vision else 0
         report["last_vision_detection"] = vision.last_detection if vision else None
         print("[report] " + json.dumps(report, indent=2, default=str), flush=True)
-        report()
+        if not args.no_plots:
+            show_plotters(plotters)
         return 0 if report["mission_complete"] else 2
     finally:
         dds.stop()

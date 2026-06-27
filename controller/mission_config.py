@@ -38,10 +38,10 @@ class CargoRoutingConfig:
 @dataclass
 class AckermannMissionConfig:
     point_a: tuple = (0.0, 0.0)
-    point_b: tuple = (0.0, -25.0)
-    point_c: tuple = (-18, 41)
+    point_b: tuple = (0.0, -25.0)#0 -25
+    point_c: tuple = (18, -41)
     navigation_obstacles: tuple = field(default_factory=lambda: (
-        ((2.5, -3.0), (6.0, 1.0)),
+        ((-3, 25.5), (3.0,24.5 )),
     ))
     zone_radius: float = 0.35
     packages_to_load: list = field(default_factory=lambda: [5.0, 5.0, 5.0])

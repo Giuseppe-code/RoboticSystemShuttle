@@ -23,12 +23,14 @@ class NF1Path2DMotion:
         waypoint_threshold=1.0,
         lookahead_steps=3,
         obstacles=None,
+        obstacle_padding=2.0,
     ):
         self.scale = scale
         self.margin = margin
         self.waypoint_threshold = waypoint_threshold
         self.lookahead_steps = lookahead_steps
         self.obstacles = tuple(obstacles or ())
+        self.obstacle_padding = obstacle_padding
         self.path = []
         self.current_index = 0
         self.offset = (0.0, 0.0)
@@ -50,9 +52,10 @@ class NF1Path2DMotion:
         min_y = min(start[1], end[1])
         max_y = max(start[1], end[1])
 
-        self.offset = (self.margin - min_x, self.margin - min_y)
-        width = (max_x - min_x) + 2 * self.margin + self.scale
-        height = (max_y - min_y) + 2 * self.margin + self.scale
+        margin = self.margin + self.obstacle_padding
+        self.offset = (margin - min_x, margin - min_y)
+        width = (max_x - min_x) + 2 * margin + self.scale
+        height = (max_y - min_y) + 2 * margin + self.scale
         world = World(width, height, self.scale)
         for obstacle in self.obstacles:
             world.add_rectangle_obstacle(*self._obstacle_bounds(obstacle))
@@ -98,8 +101,8 @@ class NF1Path2DMotion:
 
     def _obstacle_bounds(self, obstacle):
         center, size = obstacle
-        half_width = size[0] / 2.0
-        half_height = size[1] / 2.0
+        half_width = size[0] / 2.0 + self.obstacle_padding
+        half_height = size[1] / 2.0 + self.obstacle_padding
         min_point = self._to_planner_point((center[0] - half_width, center[1] - half_height))
         max_point = self._to_planner_point((center[0] + half_width, center[1] + half_height))
         return min_point[0], min_point[1], max_point[0], max_point[1]

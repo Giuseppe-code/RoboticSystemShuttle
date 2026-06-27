@@ -1,9 +1,9 @@
 extends Node3D
 
 @export var vehicle_path: NodePath = ^"../DemoCar"
-@export var carried_offset := Vector3(0.0, 1.25, 0.15)
+@export var carried_offset := Vector3(0.0, 0.8, 0.15)
 @export var delivered_position := Vector3(-2.5, 0.32, 0.0)
-@export var delivered_position_c := Vector3(0.0, 0.32, -7.5)
+@export var delivered_position_c := Vector3(41, 0.125, -18.5)
 @export var package_size := Vector3(0.55, 0.55, 0.55)
 
 var vehicle: Node3D
@@ -70,7 +70,7 @@ func _make_package(color: Color) -> MeshInstance3D:
 func _package_color(color_code: float) -> Color:
 	if int(color_code) == 2:
 		return Color(0.9, 0.05, 0.04, 1.0)
-	return Color(0.0, 0.66, 0.85, 1.0)
+	return	Color(0.04, 0.20, 0.85, 1.0)
 
 
 func _delivered_position(zone_code: float) -> Vector3:

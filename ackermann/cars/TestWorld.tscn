@@ -48,7 +48,7 @@ size = Vector3(6, 0.1, 50)
 points = PackedVector3Array(-25.1366, 0.136612, -25.1366, -25.1366, 0.136612, 25.1366, 25.1366, 0.136612, -25.1366, 25.1366, 0.136612, 25.1366)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_s5t8w"]
-albedo_color = Color(0, 0.65882355, 0.52156866, 1)
+albedo_color = Color(0.039215688, 0.2, 0.8509804, 1)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_uwhkb"]
 material = SubResource("StandardMaterial3D_s5t8w")
@@ -205,7 +205,7 @@ expand_mode = 2
 stretch_mode = 5
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=435463921]
-transform = Transform3D(1, 0, 0, 0, 3.249, 0, 0, 0, 5.488, 20, 2, 0)
+transform = Transform3D(-0.06986089, 0, 5.4745913, 0, 3.2489996, 0, -0.9975567, 0, -0.3833965, 34, 2.9, -12)
 mesh = SubResource("BoxMesh_4ksr8")
 
 [editable path="DemoCar/ArmMount/RobotArm"]
